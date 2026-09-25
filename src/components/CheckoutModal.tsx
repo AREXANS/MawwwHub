@@ -186,6 +186,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }
   };
 
+  const getCleanLoadstring = () => {
+    const currentOrigin = window.location.origin;
+    if (!loadstring) {
+      return `_G.MawwwHubKey = "${issuedKey}"\nloadstring(game:HttpGet("${currentOrigin}/api/raw/mawwwhub?key=" .. _G.MawwwHubKey))()`;
+    }
+    return loadstring.replace(/https?:\/\/[a-zA-Z0-9.\-_:]+(?=\/api\/raw)/g, currentOrigin);
+  };
+
   const handleCopyKey = () => {
     if (!issuedKey) return;
     navigator.clipboard.writeText(issuedKey);
@@ -194,8 +202,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   };
 
   const handleCopyLoadstring = () => {
-    if (!loadstring) return;
-    navigator.clipboard.writeText(loadstring);
+    const textToCopy = getCleanLoadstring();
+    if (!textToCopy) return;
+    navigator.clipboard.writeText(textToCopy);
     setCopiedScript(true);
     setTimeout(() => setCopiedScript(false), 2500);
   };
@@ -534,7 +543,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </div>
 
                 <div className="p-2.5 rounded-lg bg-[#070210] border border-purple-900/80 font-mono-code text-[11px] text-purple-200 overflow-x-auto custom-scrollbar select-all">
-                  <pre className="whitespace-pre-wrap break-all">{loadstring}</pre>
+                  <pre className="whitespace-pre-wrap break-all">{getCleanLoadstring()}</pre>
                 </div>
               </div>
 

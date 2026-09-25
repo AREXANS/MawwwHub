@@ -36,8 +36,9 @@ export const KeyCheckerModal: React.FC<KeyCheckerModalProps> = ({ onClose, apiBa
     }
   };
 
+  const currentOrigin = typeof window !== 'undefined' ? window.location.origin : apiBase;
   const sampleLoader = result
-    ? `_G.MawwwHubKey = "${result.key}"\nloadstring(game:HttpGet("${apiBase}/api/raw/mawwwhub?key=" .. _G.MawwwHubKey))()`
+    ? `_G.MawwwHubKey = "${result.key}"\nloadstring(game:HttpGet("${currentOrigin}/api/raw/mawwwhub?key=" .. _G.MawwwHubKey))()`
     : '';
 
   const handleCopyLoader = () => {

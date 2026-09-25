@@ -345,7 +345,9 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
   const handleTestRawLoader = async () => {
     setIsTestingRaw(true);
     try {
-      const res = await fetch(`/api/raw/mawwwhub?key=${encodeURIComponent(rawTestKey.trim())}`);
+      const res = await fetch(`/api/raw/mawwwhub?key=${encodeURIComponent(rawTestKey.trim())}&executor=1`, {
+        headers: { 'X-Requested-By': 'MawwwHubExecutor' }
+      });
       const text = await res.text();
       setRawTestOutput(text);
     } catch (err: any) {

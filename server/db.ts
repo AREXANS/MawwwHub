@@ -4,8 +4,14 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DATA_DIR = path.resolve(__dirname, '../data');
+
+// In Vercel serverless, root dir is read-only. Use /tmp if in Vercel or if write fails.
+const IS_VERCEL = !!process.env.VERCEL;
+const DATA_DIR = IS_VERCEL ? '/tmp/mawwwhub_data' : path.resolve(__dirname, '../data');
 const DB_FILE = path.join(DATA_DIR, 'store.json');
+const BACKUP_FILE = path.resolve(__dirname, '../data/store.json');
+
+let inMemoryDb: DatabaseSchema | null = null;
 
 export interface ScriptPackage {
   id: string;
@@ -245,59 +251,90 @@ loadstring(game:HttpGet("{API_BASE}/api/raw/mawwwhub?key=" .. _G.MawwwHubKey))()
 };
 
 function ensureDir() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+  } catch (e) {
+    // ignore dir creation error
   }
 }
 
 export function readDatabase(): DatabaseSchema {
-  ensureDir();
-  if (!fs.existsSync(DB_FILE)) {
-    const initialDb: DatabaseSchema = {
-      settings: defaultSettings,
-      keys: [
-        {
-          key: "MWH-DEMO-LIFETIME-DEVKEY",
-          packageId: "pkg-perm",
-          packageName: "Paket Lifetime (Permanen)",
-          durationDays: -1,
-          createdAt: new Date().toISOString(),
-          expiresAt: null,
-          status: "active",
-          customerNote: "Official Developer Key MawwwHub",
-          robloxUsername: "Admin_MawwwHub"
-        }
-      ],
-      transactions: [],
-      adminTokens: ["mawwwhub-permanent-session-token"]
-    };
-    fs.writeFileSync(DB_FILE, JSON.stringify(initialDb, null, 2), 'utf8');
-    return initialDb;
+  if (inMemoryDb) {
+    return inMemoryDb;
   }
 
-  try {
-    const raw = fs.readFileSync(DB_FILE, 'utf8');
-    const data = JSON.parse(raw);
-    // ensure required fields exist
-    if (!data.settings) data.settings = defaultSettings;
-    if (!data.keys) data.keys = [];
-    if (!data.transactions) data.transactions = [];
-    if (!data.adminTokens) data.adminTokens = ["mawwwhub-permanent-session-token"];
-    return data;
-  } catch (err) {
-    console.error("Error reading database, creating default:", err);
-    return {
-      settings: defaultSettings,
-      keys: [],
-      transactions: [],
-      adminTokens: ["mawwwhub-permanent-session-token"]
-    };
+  ensureDir();
+  
+  // Try loading from primary file, or fallback to repo backup file if on Vercel
+  let raw: string | null = null;
+  if (fs.existsSync(DB_FILE)) {
+    try {
+      raw = fs.readFileSync(DB_FILE, 'utf8');
+    } catch (e) {}
+  } else if (fs.existsSync(BACKUP_FILE)) {
+    try {
+      raw = fs.readFileSync(BACKUP_FILE, 'utf8');
+    } catch (e) {}
   }
+
+  if (raw) {
+    try {
+      const data = JSON.parse(raw);
+      if (!data.settings) data.settings = defaultSettings;
+      if (!data.keys) data.keys = [];
+      if (!data.transactions) data.transactions = [];
+      if (!data.adminTokens) data.adminTokens = ["mawwwhub-permanent-session-token"];
+      inMemoryDb = data;
+      return data;
+    } catch (err) {
+      console.error("Error reading database, creating default:", err);
+    }
+  }
+
+  // Create initial default DB
+  const initialDb: DatabaseSchema = {
+    settings: defaultSettings,
+    keys: [
+      {
+        key: "MWH-DEMO-LIFETIME-DEVKEY",
+        packageId: "pkg-perm",
+        packageName: "Paket Lifetime (Permanen)",
+        durationDays: -1,
+        createdAt: new Date().toISOString(),
+        expiresAt: null,
+        status: "active",
+        customerNote: "Official Developer Key MawwwHub",
+        robloxUsername: "Admin_MawwwHub"
+      }
+    ],
+    transactions: [],
+    adminTokens: ["mawwwhub-permanent-session-token"]
+  };
+
+  inMemoryDb = initialDb;
+  try {
+    fs.writeFileSync(DB_FILE, JSON.stringify(initialDb, null, 2), 'utf8');
+  } catch (err) {
+    // If writing fails, inMemoryDb still persists during function life
+  }
+  return initialDb;
 }
 
 export function writeDatabase(db: DatabaseSchema): void {
+  inMemoryDb = db;
   ensureDir();
-  fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), 'utf8');
+  try {
+    fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), 'utf8');
+  } catch (err) {
+    // fallback if DB_FILE fails (e.g. read only)
+    try {
+      if (!IS_VERCEL) {
+        fs.writeFileSync(BACKUP_FILE, JSON.stringify(db, null, 2), 'utf8');
+      }
+    } catch (e) {}
+  }
 }
 
 export function generateKeyString(prefix = "MWH"): string {
