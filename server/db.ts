@@ -59,6 +59,7 @@ export interface Transaction {
 
 export interface AppSettings {
   brandName: string;
+  logoUrl?: string;
   tagline: string;
   heroHeadline: string;
   heroSubheadline: string;
@@ -97,6 +98,7 @@ export interface DatabaseSchema {
 
 const defaultSettings: AppSettings = {
   brandName: "MawwwHub",
+  logoUrl: "",
   tagline: "The #1 Roblox Script Hub & Auto Delivery Store",
   heroHeadline: "MawwwHub Script Executor & VIP Hub",
   heroSubheadline: "Script Roblox terbaik, undetected, auto update & aktivasi key instan otomatis 24/7.",

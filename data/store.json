@@ -74,7 +74,8 @@
         "description": "Akses selamanya termasuk semua update patch masa depan",
         "isActive": true
       }
-    ]
+    ],
+    "logoUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjN2MzYWVkIi8+PHRleHQgeD0iMzIiIHk9IjM2IiBmb250LXNpemU9IjI0IiBmaWxsPSIjZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiI+TTwvdGV4dD48L3N2Zz4="
   },
   "keys": [
     {

@@ -25,7 +25,9 @@ import {
   DollarSign,
   TrendingUp,
   Cpu,
-  Info
+  Info,
+  Upload,
+  Image as ImageIcon
 } from 'lucide-react';
 import { FullAdminSettings, ScriptPackage, IssuedKey, Transaction, AdminStats } from '../types';
 
@@ -83,6 +85,45 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
   const [rawTestKey, setRawTestKey] = useState('MWH-DEMO-LIFETIME-DEVKEY');
   const [rawTestOutput, setRawTestOutput] = useState('');
   const [isTestingRaw, setIsTestingRaw] = useState(false);
+
+  // Logo file upload state
+  const [logoUploadMsg, setLogoUploadMsg] = useState('');
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+
+  const handleLogoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !settings) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Ukuran file gambar maksimal 5MB!");
+      return;
+    }
+
+    setIsUploadingLogo(true);
+    setLogoUploadMsg('');
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string;
+      if (base64) {
+        setSettings({ ...settings, logoUrl: base64 });
+        setLogoUploadMsg(`File "${file.name}" berhasil dimuat! Klik "Simpan Perubahan" untuk menyimpan permanen.`);
+        setTimeout(() => setLogoUploadMsg(''), 5000);
+      }
+      setIsUploadingLogo(false);
+    };
+    reader.onerror = () => {
+      alert("Gagal membaca file gambar.");
+      setIsUploadingLogo(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveLogo = () => {
+    if (!settings) return;
+    setSettings({ ...settings, logoUrl: '' });
+    setLogoUploadMsg('Logo custom dihapus. Icon default akan digunakan.');
+    setTimeout(() => setLogoUploadMsg(''), 4000);
+  };
 
   // Check login on mount
   useEffect(() => {
@@ -1459,6 +1500,107 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
                 <Save className="w-3.5 h-3.5" />
                 <span>Simpan Perubahan</span>
               </button>
+            </div>
+
+            {/* Custom Logo Uploader Section */}
+            <div className="p-5 rounded-2xl bg-[#090216] border border-purple-800/70 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                    <ImageIcon className="w-4 h-4 text-purple-400" />
+                    <span>Upload Logo Kustom Website</span>
+                  </h4>
+                  <p className="text-xs text-purple-300/70">
+                    Upload file gambar logo Anda (PNG, JPG, WebP, SVG, GIF). Logo akan otomatis tampil di navbar header dan footer.
+                  </p>
+                </div>
+                {settings.logoUrl && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveLogo}
+                    className="px-3 py-1.5 rounded-lg bg-red-950/60 hover:bg-red-900/80 text-red-300 border border-red-800/50 text-xs font-semibold flex items-center gap-1.5 transition"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Hapus Logo Kustom</span>
+                  </button>
+                )}
+              </div>
+
+              {logoUploadMsg && (
+                <div className="p-3 rounded-xl bg-purple-950/60 border border-purple-500/50 text-xs text-purple-200 flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <span>{logoUploadMsg}</span>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                {/* Upload File Input Button */}
+                <div className="md:col-span-2 space-y-3">
+                  <div className="flex flex-col sm:flex-row items-center gap-3">
+                    <label
+                      htmlFor="logoFileInput"
+                      className="w-full sm:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-purple-700 via-violet-600 to-fuchsia-600 hover:from-purple-600 hover:to-violet-500 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-purple-900/50 transition active:scale-95"
+                    >
+                      <Upload className="w-4 h-4" />
+                      <span>{isUploadingLogo ? 'Memproses File...' : 'Pilih File Logo dari Perangkat'}</span>
+                    </label>
+                    <input
+                      id="logoFileInput"
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml,image/gif"
+                      onChange={handleLogoFileChange}
+                      className="hidden"
+                    />
+                    <span className="text-[11px] text-purple-400/80">
+                      Format: PNG, JPG, WebP, SVG (Maks. 5 MB)
+                    </span>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-purple-300/80 mb-1">
+                      Atau Tempel (Paste) URL Gambar Langsung:
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.logoUrl || ''}
+                      onChange={(e) => setSettings({ ...settings, logoUrl: e.target.value })}
+                      placeholder="https://contoh.com/logo-mawwwhub.png atau data:image/..."
+                      className="w-full px-3 py-2 rounded-xl bg-[#06010e] border border-purple-800 text-xs font-mono-code text-white focus:outline-none focus:border-purple-400"
+                    />
+                  </div>
+                </div>
+
+                {/* Live Preview Box */}
+                <div className="p-4 rounded-xl bg-[#0e0420] border border-purple-900/60 flex flex-col items-center justify-center text-center">
+                  <span className="text-[10px] font-bold text-purple-300 uppercase tracking-wider mb-2 block">
+                    Preview Tampilan Logo
+                  </span>
+                  
+                  {settings.logoUrl ? (
+                    <div className="space-y-2">
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-700 via-violet-600 to-fuchsia-500 p-0.5 shadow-xl shadow-purple-600/40 mx-auto overflow-hidden">
+                        <img
+                          src={settings.logoUrl}
+                          alt="Preview Logo"
+                          className="w-full h-full object-cover rounded-[14px]"
+                        />
+                      </div>
+                      <span className="text-[11px] text-emerald-400 font-semibold block">
+                        ✓ Logo Kustom Terpasang
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="w-16 h-16 rounded-2xl bg-[#14082c] border border-dashed border-purple-700/60 flex items-center justify-center text-purple-400/50 mx-auto">
+                        <ImageIcon className="w-7 h-7" />
+                      </div>
+                      <span className="text-[11px] text-purple-400/60 block">
+                        Menggunakan Icon Terminal Default
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">

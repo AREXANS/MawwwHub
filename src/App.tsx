@@ -77,7 +77,6 @@ export default function App() {
         settings={settings}
         onOpenKeyChecker={() => setIsKeyCheckerOpen(true)}
         onOpenGuide={() => setIsGuideOpen(true)}
-        onGoDev={() => navigateTo('/dev')}
       />
 
       {/* Main Content Area */}
@@ -96,7 +95,6 @@ export default function App() {
         <PackagesList
           settings={settings}
           onSelectPackage={(pkg) => setSelectedPackage(pkg)}
-          onGoDev={() => navigateTo('/dev')}
         />
 
         {/* Interactive Quick Tools Banner */}
@@ -137,9 +135,17 @@ export default function App() {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-purple-300/70">
           
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-purple-700 flex items-center justify-center text-white text-[10px] font-black">
-              M
-            </div>
+            {settings?.logoUrl ? (
+              <img
+                src={settings.logoUrl}
+                alt={brandName}
+                className="w-6 h-6 rounded-md object-cover border border-purple-500/40"
+              />
+            ) : (
+              <div className="w-6 h-6 rounded-lg bg-purple-700 flex items-center justify-center text-white text-[10px] font-black">
+                M
+              </div>
+            )}
             <span className="font-extrabold text-sm text-white">{brandName}</span>
             <span>— Roblox Script Hub & Store</span>
           </div>
@@ -156,13 +162,6 @@ export default function App() {
               className="hover:text-purple-200 transition"
             >
               Panduan Executor
-            </button>
-            <button
-              onClick={() => navigateTo('/dev')}
-              className="text-purple-400 hover:text-purple-300 flex items-center gap-1 font-mono-code"
-            >
-              <Lock className="w-3 h-3" />
-              <span>Admin /dev</span>
             </button>
           </div>
 

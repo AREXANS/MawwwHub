@@ -5,13 +5,11 @@ import { ScriptPackage, AppPublicSettings } from '../types';
 interface PackagesListProps {
   settings: AppPublicSettings | null;
   onSelectPackage: (pkg: ScriptPackage) => void;
-  onGoDev: () => void;
 }
 
 export const PackagesList: React.FC<PackagesListProps> = ({
   settings,
-  onSelectPackage,
-  onGoDev
+  onSelectPackage
 }) => {
   const packages = settings?.packages || [];
   const scriptName = settings?.gameName || "MawwwHub Roblox VIP";
@@ -78,15 +76,9 @@ export const PackagesList: React.FC<PackagesListProps> = ({
         <div className="text-center py-16 px-4 rounded-2xl bg-[#120824]/60 border border-purple-900/40 max-w-xl mx-auto">
           <AlertCircle className="w-12 h-12 text-purple-400 mx-auto mb-3 opacity-60" />
           <h3 className="text-lg font-bold text-white mb-2">Halaman Utama Bersih / Belum Ada Paket Aktif</h3>
-          <p className="text-xs text-purple-300/70 mb-6">
-            Anda dapat menambahkan paket durasi (1 Hari, 7 Hari, 30 Hari, Lifetime) dan mengatur harga serta script loadstring di menu /dev.
+          <p className="text-xs text-purple-300/70">
+            Katalog paket script sedang diperbarui.
           </p>
-          <button
-            onClick={onGoDev}
-            className="px-5 py-2.5 rounded-xl font-semibold text-xs text-white bg-purple-600 hover:bg-purple-500 transition shadow-lg shadow-purple-900/40"
-          >
-            Buka Pengaturan /dev
-          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

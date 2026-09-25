@@ -50,6 +50,7 @@ export interface Transaction {
 
 export interface AppPublicSettings {
   brandName: string;
+  logoUrl?: string;
   tagline: string;
   heroHeadline: string;
   heroSubheadline: string;
@@ -68,6 +69,7 @@ export interface AppPublicSettings {
 
 export interface FullAdminSettings {
   brandName: string;
+  logoUrl?: string;
   tagline: string;
   heroHeadline: string;
   heroSubheadline: string;

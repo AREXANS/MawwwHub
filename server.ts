@@ -97,6 +97,7 @@ async function main() {
       success: true,
       data: {
         brandName: s.brandName,
+        logoUrl: s.logoUrl || '',
         tagline: s.tagline,
         heroHeadline: s.heroHeadline,
         heroSubheadline: s.heroSubheadline,
@@ -141,6 +142,22 @@ async function main() {
       success: true,
       message: "Pengaturan MawwwHub berhasil disimpan!",
       data: db.settings
+    });
+  });
+
+  // 5b. Admin Upload Logo
+  app.post('/api/admin/upload-logo', requireAdmin, (req: Request, res: Response) => {
+    const { imageBase64 } = req.body;
+    if (!imageBase64) {
+      return res.status(400).json({ success: false, message: "File gambar tidak ditemukan." });
+    }
+    const db = readDatabase();
+    db.settings.logoUrl = imageBase64;
+    writeDatabase(db);
+    return res.json({
+      success: true,
+      message: "Logo berhasil di-upload dan diterapkan!",
+      logoUrl: imageBase64
     });
   });
 

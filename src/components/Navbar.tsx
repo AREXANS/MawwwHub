@@ -6,14 +6,12 @@ interface NavbarProps {
   settings: AppPublicSettings | null;
   onOpenKeyChecker: () => void;
   onOpenGuide: () => void;
-  onGoDev: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   settings,
   onOpenKeyChecker,
-  onOpenGuide,
-  onGoDev
+  onOpenGuide
 }) => {
   const brandName = settings?.brandName || "MawwwHub";
 
@@ -23,10 +21,18 @@ export const Navbar: React.FC<NavbarProps> = ({
         
         {/* Brand Logo */}
         <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-700 via-violet-600 to-fuchsia-500 p-0.5 shadow-lg shadow-purple-600/30 flex items-center justify-center">
-            <div className="w-full h-full bg-[#0d071a] rounded-[10px] flex items-center justify-center">
-              <Terminal className="w-5 h-5 text-purple-400" />
-            </div>
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-700 via-violet-600 to-fuchsia-500 p-0.5 shadow-lg shadow-purple-600/30 flex items-center justify-center overflow-hidden">
+            {settings?.logoUrl ? (
+              <img
+                src={settings.logoUrl}
+                alt={brandName}
+                className="w-full h-full object-cover rounded-[10px]"
+              />
+            ) : (
+              <div className="w-full h-full bg-[#0d071a] rounded-[10px] flex items-center justify-center">
+                <Terminal className="w-5 h-5 text-purple-400" />
+              </div>
+            )}
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -72,16 +78,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               <ExternalLink className="w-3 h-3 text-purple-400" />
             </a>
           )}
-
-          {/* Admin /dev Button */}
-          <button
-            onClick={onGoDev}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-purple-700 via-purple-600 to-violet-600 hover:from-purple-600 hover:to-violet-500 rounded-lg shadow-md shadow-purple-900/40 border border-purple-500/30 transition transform active:scale-95"
-            title="Akses Portal Pengaturan Admin /dev"
-          >
-            <Lock className="w-3.5 h-3.5 text-purple-200" />
-            <span>/dev</span>
-          </button>
         </div>
 
       </div>
