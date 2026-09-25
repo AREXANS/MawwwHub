@@ -76,6 +76,8 @@ export interface AppSettings {
   telegramUrl: string;
   whatsappContact: string;
   announcementText: string;
+  enableOrderUsername?: boolean;
+  enableOrderWhatsapp?: boolean;
   // Loadstring & Raw Code settings
   loadstringTemplate: string;
   rawScriptBody: string;
@@ -123,37 +125,46 @@ const defaultSettings: AppSettings = {
   telegramUrl: "https://t.me/mawwwhub",
   whatsappContact: "https://wa.me/6281234567890",
   announcementText: "🔥 PROMO LAUNCHING: Dapatkan diskon 30% untuk semua paket durasi script MawwwHub hari ini!",
+  enableOrderUsername: false,
+  enableOrderWhatsapp: false,
   loadstringTemplate: `_G.MawwwHubKey = "{KEY}"
 loadstring(game:HttpGet("{API_BASE}/api/raw/mawwwhub?key=" .. _G.MawwwHubKey))()`,
   rawScriptBody: `-- [[ MawwwHub Official Script Hub - Premium Edition ]] --
--- Protected & Managed by MawwwHub Authentication System
+-- Realtime Key Duration & Auto Sync HUD System
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local TweenService = game:GetService("TweenService")
 local HttpService = game:GetService("HttpService")
+local UserInputService = game:GetService("UserInputService")
+
+local Key = "{KEY}"
+local ApiBase = "{API_BASE}"
+local BrandName = "{BRAND_NAME}"
+local PackageName = "{PACKAGE}"
+local ExpireTimestamp = {EXPIRES_AT_TIMESTAMP} -- Unix seconds (0 = Lifetime)
 
 print("[MawwwHub] Key verified successfully for: " .. LocalPlayer.Name)
 
--- Notify Player
+-- Notify Player on execution
 pcall(function()
     game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = "💜 MawwwHub VIP Active",
-        Text = "Selamat datang! Key aktif. Menyiapkan GUI...",
-        Duration = 6
+        Title = "💜 " .. BrandName .. " VIP Active",
+        Text = "Key terverifikasi! Durasi realtime aktif di pojok layar.",
+        Duration = 5
     })
 end)
 
--- Main Hub Engine
-local MawwwHub = {
-    Version = "v3.8.4",
-    Key = "{KEY}",
-    ExpiresAt = "{EXPIRES_AT}",
-    Status = "Authorized"
-}
+-- Remove existing HUD if present
+pcall(function()
+    local old = (game:GetService("CoreGui"):FindFirstChild("MawwwHub_VIP_HUD") or LocalPlayer:FindFirstChild("PlayerGui"):FindFirstChild("MawwwHub_VIP_HUD"))
+    if old then old:Destroy() end
+end)
 
--- Create UI Notification Banner
+-- Create ScreenGui
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "MawwwHub_Indicator"
+ScreenGui.Name = "MawwwHub_VIP_HUD"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
 pcall(function()
     ScreenGui.Parent = game:GetService("CoreGui")
 end)
@@ -161,36 +172,203 @@ if not ScreenGui.Parent then
     ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 end
 
-local MainBadge = Instance.new("Frame")
-MainBadge.Size = UDim2.new(0, 220, 0, 42)
-MainBadge.Position = UDim2.new(1, -230, 0, 15)
-MainBadge.BackgroundColor3 = Color3.fromRGB(24, 10, 45)
-MainBadge.BorderSizePixel = 0
-MainBadge.Parent = ScreenGui
+-- Main Floating Transparent Card (Positioned top-right corner)
+local Card = Instance.new("Frame")
+Card.Name = "DurationCard"
+Card.Size = UDim2.new(0, 260, 0, 80)
+Card.Position = UDim2.new(1, -275, 0, 20)
+Card.BackgroundColor3 = Color3.fromRGB(15, 6, 32)
+Card.BackgroundTransparency = 0.35 -- Transparan di pojok layar
+Card.BorderSizePixel = 0
+Card.Active = true
+Card.ClipsDescendants = false
+Card.Parent = ScreenGui
 
+-- Rounded Corners
 local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 8)
-UICorner.Parent = MainBadge
+UICorner.CornerRadius = UDim.new(0, 12)
+UICorner.Parent = Card
 
-local UIGradient = Instance.new("UIGradient")
-UIGradient.Color = ColorSequence.new{
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(147, 51, 234)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(88, 28, 135))
-}
-UIGradient.Parent = MainBadge
+-- Glowing Purple Stroke Border
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Color = Color3.fromRGB(168, 85, 247)
+UIStroke.Transparency = 0.35
+UIStroke.Thickness = 1.6
+UIStroke.Parent = Card
 
-local TitleLabel = Instance.new("TextLabel")
-TitleLabel.Size = UDim2.new(1, -10, 1, 0)
-TitleLabel.Position = UDim2.new(0, 10, 0, 0)
-TitleLabel.BackgroundTransparency = 1
-TitleLabel.Text = "💜 MawwwHub: Authenticated"
-TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-TitleLabel.Font = Enum.Font.GothamBold
-TitleLabel.TextSize = 13
-TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-TitleLabel.Parent = MainBadge
+-- Header Bar
+local Header = Instance.new("Frame")
+Header.Size = UDim2.new(1, 0, 0, 24)
+Header.BackgroundTransparency = 1
+Header.Parent = Card
 
-print("[MawwwHub] Script fully loaded & operational.")`,
+-- Status Indicator Dot (Glowing Green)
+local Dot = Instance.new("Frame")
+Dot.Size = UDim2.new(0, 8, 0, 8)
+Dot.Position = UDim2.new(0, 12, 0.5, -4)
+Dot.BackgroundColor3 = Color3.fromRGB(34, 197, 94)
+Dot.BorderSizePixel = 0
+Dot.Parent = Header
+
+local DotCorner = Instance.new("UICorner")
+DotCorner.CornerRadius = UDim.new(1, 0)
+DotCorner.Parent = Dot
+
+-- Title Brand
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -75, 1, 0)
+Title.Position = UDim2.new(0, 25, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = BrandName .. " VIP"
+Title.TextColor3 = Color3.fromRGB(243, 232, 255)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 12
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = Header
+
+-- Package Badge
+local Badge = Instance.new("TextLabel")
+Badge.Size = UDim2.new(0, 56, 0, 16)
+Badge.Position = UDim2.new(1, -66, 0.5, -8)
+Badge.BackgroundColor3 = Color3.fromRGB(126, 34, 206)
+Badge.BackgroundTransparency = 0.3
+Badge.Text = "ACTIVE"
+Badge.TextColor3 = Color3.fromRGB(255, 255, 255)
+Badge.Font = Enum.Font.GothamBold
+Badge.TextSize = 9
+Badge.Parent = Header
+
+local BadgeCorner = Instance.new("UICorner")
+BadgeCorner.CornerRadius = UDim.new(0, 4)
+BadgeCorner.Parent = Badge
+
+-- Divider
+local Line = Instance.new("Frame")
+Line.Size = UDim2.new(1, -20, 0, 1)
+Line.Position = UDim2.new(0, 10, 0, 26)
+Line.BackgroundColor3 = Color3.fromRGB(147, 51, 234)
+Line.BackgroundTransparency = 0.6
+Line.BorderSizePixel = 0
+Line.Parent = Card
+
+-- Realtime Key Label
+local KeyLabel = Instance.new("TextLabel")
+KeyLabel.Size = UDim2.new(1, -24, 0, 18)
+KeyLabel.Position = UDim2.new(0, 12, 0, 31)
+KeyLabel.BackgroundTransparency = 1
+KeyLabel.Text = "🔑 " .. Key
+KeyLabel.TextColor3 = Color3.fromRGB(216, 180, 254)
+KeyLabel.Font = Enum.Font.Code
+KeyLabel.TextSize = 10
+KeyLabel.TextXAlignment = Enum.TextXAlignment.Left
+KeyLabel.Parent = Card
+
+-- Realtime Duration Countdown Label
+local DurationLabel = Instance.new("TextLabel")
+DurationLabel.Size = UDim2.new(1, -24, 0, 22)
+DurationLabel.Position = UDim2.new(0, 12, 0, 51)
+DurationLabel.BackgroundTransparency = 1
+DurationLabel.Text = "⏳ Menghitung durasi..."
+DurationLabel.TextColor3 = Color3.fromRGB(253, 224, 71)
+DurationLabel.Font = Enum.Font.GothamBold
+DurationLabel.TextSize = 11
+DurationLabel.TextXAlignment = Enum.TextXAlignment.Left
+DurationLabel.Parent = Card
+
+-- Draggable implementation for Mobile & PC
+local dragging, dragInput, dragStart, startPos
+Card.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = Card.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+Card.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        Card.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+-- Format remaining time function
+local function formatRemaining(seconds)
+    if seconds <= 0 then
+        return "⚠️ MASA AKTIF HABIS (EXPIRED)"
+    end
+    local days = math.floor(seconds / 86400)
+    local hours = math.floor((seconds % 86400) / 3600)
+    local mins = math.floor((seconds % 3600) / 60)
+    local secs = math.floor(seconds % 60)
+    if days > 0 then
+        return string.format("⏳ Sisa: %dH %dJ %dM %dS", days, hours, mins, secs)
+    elseif hours > 0 then
+        return string.format("⏳ Sisa: %dJ %dM %dS", hours, mins, secs)
+    else
+        return string.format("⏳ Sisa: %dM %dS", mins, secs)
+    end
+end
+
+-- Live Countdown Routine
+local isLifetime = (ExpireTimestamp == 0)
+task.spawn(function()
+    while ScreenGui.Parent do
+        if isLifetime then
+            DurationLabel.Text = "⏳ Sisa: PERMANEN (LIFETIME)"
+            DurationLabel.TextColor3 = Color3.fromRGB(52, 211, 153)
+        else
+            local now = os.time()
+            local diff = ExpireTimestamp - now
+            if diff <= 0 then
+                DurationLabel.Text = "⚠️ KEY KEDALUWARSA"
+                DurationLabel.TextColor3 = Color3.fromRGB(248, 113, 113)
+                Dot.BackgroundColor3 = Color3.fromRGB(239, 68, 68)
+                Badge.Text = "EXPIRED"
+                Badge.BackgroundColor3 = Color3.fromRGB(220, 38, 38)
+            else
+                DurationLabel.Text = formatRemaining(diff)
+                DurationLabel.TextColor3 = Color3.fromRGB(253, 224, 71)
+            end
+        end
+        task.wait(1)
+    end
+end)
+
+-- Realtime Web API Sync (Fetches live verification from web every 60s)
+task.spawn(function()
+    while ScreenGui.Parent do
+        task.wait(60)
+        pcall(function()
+            local response = game:HttpGet(ApiBase .. "/api/key/verify?key=" .. Key)
+            if response then
+                local data = HttpService:JSONDecode(response)
+                if data and data.success then
+                    if not data.valid or data.status == "expired" or data.status == "revoked" then
+                        Dot.BackgroundColor3 = Color3.fromRGB(239, 68, 68)
+                        Badge.Text = string.upper(data.status or "EXPIRED")
+                        Badge.BackgroundColor3 = Color3.fromRGB(220, 38, 38)
+                        DurationLabel.Text = "⚠️ " .. (data.message or "Key tidak aktif!")
+                        DurationLabel.TextColor3 = Color3.fromRGB(248, 113, 113)
+                    elseif isLifetime or (data.data and data.data.durationDays == -1) then
+                        DurationLabel.Text = "⏳ Sisa: PERMANEN (LIFETIME)"
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+print("[MawwwHub] Realtime duration HUD initialized successfully.")`,
   rawLoaderTemplate: `-- [[ MawwwHub Loader ]] --
 -- Paste kode ini di Executor Anda (Delta, Codex, Solara, Wave, dll):
 _G.MawwwHubKey = "{KEY}"
@@ -283,6 +461,11 @@ export function readDatabase(): DatabaseSchema {
     try {
       const data = JSON.parse(raw);
       if (!data.settings) data.settings = defaultSettings;
+      if (data.settings.enableOrderUsername === undefined) data.settings.enableOrderUsername = false;
+      if (data.settings.enableOrderWhatsapp === undefined) data.settings.enableOrderWhatsapp = false;
+      if (!data.settings.rawScriptBody || data.settings.rawScriptBody.includes("MawwwHub_Indicator")) {
+        data.settings.rawScriptBody = defaultSettings.rawScriptBody;
+      }
       if (!data.keys) data.keys = [];
       if (!data.transactions) data.transactions = [];
       if (!data.adminTokens) data.adminTokens = ["mawwwhub-permanent-session-token"];

@@ -15,18 +15,20 @@ import {
   Terminal,
   HelpCircle
 } from 'lucide-react';
-import { ScriptPackage, Transaction } from '../types';
+import { ScriptPackage, Transaction, AppPublicSettings } from '../types';
 
 interface CheckoutModalProps {
   pkg: ScriptPackage | null;
   onClose: () => void;
   apiBase: string;
+  settings?: AppPublicSettings | null;
 }
 
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   pkg,
   onClose,
-  apiBase
+  apiBase,
+  settings
 }) => {
   const [step, setStep] = useState<'form' | 'payment' | 'success'>('form');
   const [robloxUsername, setRobloxUsername] = useState('');
@@ -57,8 +59,16 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const handleCreateOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!pkg) return;
-    if (!robloxUsername.trim()) {
+    
+    // Only require username if enabled in /dev
+    if (settings?.enableOrderUsername && !robloxUsername.trim()) {
       setErrorMsg('Mohon isi Username Roblox Anda untuk verifikasi kepemilikan script.');
+      return;
+    }
+
+    // Only require WhatsApp if enabled in /dev and user hasn't filled it
+    if (settings?.enableOrderWhatsapp && !customerContact.trim()) {
+      setErrorMsg('Mohon isi Nomor WhatsApp Anda untuk penerimaan notifikasi.');
       return;
     }
 
@@ -71,8 +81,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           packageId: pkg.id,
-          robloxUsername: robloxUsername.trim(),
-          customerContact: customerContact.trim(),
+          robloxUsername: robloxUsername.trim() || 'MawwwHub Member',
+          customerContact: customerContact.trim() || '',
           paymentChannel
         })
       });
@@ -275,35 +285,43 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-purple-200 mb-1.5">
-                  Username Roblox Anda <span className="text-red-400">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Contoh: Mawww_Player01"
-                  value={robloxUsername}
-                  onChange={(e) => setRobloxUsername(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#0c051a] border border-purple-800/60 focus:border-purple-400 focus:outline-none text-xs text-white placeholder-purple-400/40"
-                />
-                <span className="text-[11px] text-purple-400/60 mt-1 block">
-                  Digunakan untuk mengikat status VIP dan hak milik key.
-                </span>
-              </div>
+              {settings?.enableOrderUsername && (
+                <div>
+                  <label className="block text-xs font-semibold text-purple-200 mb-1.5">
+                    Username Roblox Anda <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Contoh: Mawww_Player01"
+                    value={robloxUsername}
+                    onChange={(e) => setRobloxUsername(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#0c051a] border border-purple-800/60 focus:border-purple-400 focus:outline-none text-xs text-white placeholder-purple-400/40"
+                  />
+                  <span className="text-[11px] text-purple-400/60 mt-1 block">
+                    Digunakan untuk mengikat status VIP dan hak milik key.
+                  </span>
+                </div>
+              )}
 
-              <div>
-                <label className="block text-xs font-semibold text-purple-200 mb-1.5">
-                  Nomor WhatsApp / Email Pembeli (Opsional)
-                </label>
-                <input
-                  type="text"
-                  placeholder="Contoh: 08123456789 atau user@gmail.com"
-                  value={customerContact}
-                  onChange={(e) => setCustomerContact(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#0c051a] border border-purple-800/60 focus:border-purple-400 focus:outline-none text-xs text-white placeholder-purple-400/40"
-                />
-              </div>
+              {settings?.enableOrderWhatsapp && (
+                <div>
+                  <label className="block text-xs font-semibold text-purple-200 mb-1.5">
+                    Nomor WhatsApp Pembeli <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Contoh: 081234567890"
+                    value={customerContact}
+                    onChange={(e) => setCustomerContact(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#0c051a] border border-purple-800/60 focus:border-purple-400 focus:outline-none text-xs text-white placeholder-purple-400/40"
+                  />
+                  <span className="text-[11px] text-purple-400/60 mt-1 block">
+                    Untuk notifikasi bukti transaksi dan cadangan key.
+                  </span>
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-semibold text-purple-200 mb-1.5">
@@ -454,14 +472,16 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </button>
 
                 {/* Simulation Button for fast testing */}
-                <button
-                  type="button"
-                  onClick={handleSimulatePayment}
-                  className="w-full py-2 px-3 rounded-lg text-[11px] font-semibold text-purple-300/80 bg-purple-950/40 hover:bg-purple-900/50 border border-dashed border-purple-700/50 flex items-center justify-center gap-1.5 transition"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                  <span>Simulasi Bayar Berhasil (Test Mode Instan)</span>
-                </button>
+                {(settings?.simulationEnabled ?? true) && (
+                  <button
+                    type="button"
+                    onClick={handleSimulatePayment}
+                    className="w-full py-2 px-3 rounded-lg text-[11px] font-semibold text-purple-300/80 bg-purple-950/40 hover:bg-purple-900/50 border border-dashed border-purple-700/50 flex items-center justify-center gap-1.5 transition"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                    <span>Simulasi Bayar Berhasil (Test Mode Instan)</span>
+                  </button>
+                )}
               </div>
 
               <div className="text-[11px] text-purple-400/80 text-left space-y-1 bg-[#0c051a] p-3 rounded-xl border border-purple-900/30">

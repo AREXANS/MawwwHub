@@ -178,6 +178,7 @@ export default function App() {
           pkg={selectedPackage}
           onClose={() => setSelectedPackage(null)}
           apiBase={window.location.origin}
+          settings={settings}
         />
       )}
 

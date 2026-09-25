@@ -61,6 +61,8 @@ export interface AppPublicSettings {
   telegramUrl: string;
   whatsappContact: string;
   announcementText: string;
+  enableOrderUsername?: boolean;
+  enableOrderWhatsapp?: boolean;
   packages: ScriptPackage[];
   defaultChannel: string;
   simulationEnabled: boolean;
@@ -80,6 +82,8 @@ export interface FullAdminSettings {
   telegramUrl: string;
   whatsappContact: string;
   announcementText: string;
+  enableOrderUsername?: boolean;
+  enableOrderWhatsapp?: boolean;
   loadstringTemplate: string;
   rawScriptBody: string;
   rawLoaderTemplate: string;

@@ -105,9 +105,11 @@ export function createExpressApp() {
         telegramUrl: s.telegramUrl,
         whatsappContact: s.whatsappContact,
         announcementText: s.announcementText,
+        enableOrderUsername: s.enableOrderUsername ?? false,
+        enableOrderWhatsapp: s.enableOrderWhatsapp ?? false,
         packages: s.packages.filter(p => p.isActive),
         defaultChannel: s.arexanspay.defaultChannel || 'qris',
-        simulationEnabled: s.arexanspay.enableSimulation,
+        simulationEnabled: s.arexanspay.enableSimulation ?? true,
         apiBase: baseUrl
       }
     });
@@ -861,9 +863,12 @@ export function createExpressApp() {
       }
     }
 
+    const expTimestamp = keyObj.expiresAt ? Math.floor(new Date(keyObj.expiresAt).getTime() / 1000) : 0;
     let scriptOutput = db.settings.rawScriptBody
       .replace(/{KEY}/g, keyObj.key)
       .replace(/{EXPIRES_AT}/g, keyObj.expiresAt ? new Date(keyObj.expiresAt).toLocaleString('id-ID') : 'Lifetime')
+      .replace(/{EXPIRES_AT_TIMESTAMP}/g, String(expTimestamp))
+      .replace(/{BRAND_NAME}/g, db.settings.brandName || "MawwwHub")
       .replace(/{PACKAGE}/g, keyObj.packageName)
       .replace(/{API_BASE}/g, baseUrl);
 

@@ -1605,6 +1605,87 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
               </div>
             </div>
 
+            {/* Order Form & Checkout Settings Section */}
+            <div className="p-5 rounded-2xl bg-[#090216] border border-purple-800/70 space-y-4">
+              <div>
+                <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Sliders className="w-4 h-4 text-purple-400" />
+                  <span>Pengaturan Formulir Order & Pembayaran Checkout</span>
+                </h4>
+                <p className="text-xs text-purple-300/70">
+                  Atur apakah pembeli perlu mengisi username Roblox dan nomor WhatsApp saat checkout, serta kontrol tombol simulasi bayar.
+                </p>
+              </div>
+
+              <div className="space-y-3 pt-1">
+                {/* Toggle 1: Username Roblox */}
+                <div className="p-3.5 rounded-xl bg-[#110526] border border-purple-900/60 flex items-center justify-between gap-4">
+                  <div>
+                    <span className="text-xs font-bold text-white block">
+                      Minta Username Roblox Saat Order
+                    </span>
+                    <span className="text-[11px] text-purple-300/70">
+                      Jika dinonaktifkan (default), pembeli dapat langsung checkout tanpa harus mengetik username Roblox.
+                    </span>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={!!settings.enableOrderUsername}
+                      onChange={(e) => setSettings({ ...settings, enableOrderUsername: e.target.checked })}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-purple-950 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-purple-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                  </label>
+                </div>
+
+                {/* Toggle 2: WhatsApp Number */}
+                <div className="p-3.5 rounded-xl bg-[#110526] border border-purple-900/60 flex items-center justify-between gap-4">
+                  <div>
+                    <span className="text-xs font-bold text-white block">
+                      Minta Nomor WhatsApp Saat Order
+                    </span>
+                    <span className="text-[11px] text-purple-300/70">
+                      Jika dinonaktifkan (default), pembeli tidak perlu mengisi nomor telepon/WhatsApp.
+                    </span>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={!!settings.enableOrderWhatsapp}
+                      onChange={(e) => setSettings({ ...settings, enableOrderWhatsapp: e.target.checked })}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-purple-950 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-purple-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                  </label>
+                </div>
+
+                {/* Toggle 3: Simulation Payment */}
+                <div className="p-3.5 rounded-xl bg-[#110526] border border-purple-900/60 flex items-center justify-between gap-4">
+                  <div>
+                    <span className="text-xs font-bold text-white block">
+                      Mode Pembayaran Simulasi (Testing Cepat)
+                    </span>
+                    <span className="text-[11px] text-purple-300/70">
+                      Tampilkan tombol "⚡ Simulasi Bayar Berhasil" di popup pembayaran agar pembeli/admin dapat menguji aktivasi key tanpa transfer uang asli.
+                    </span>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={settings.arexanspay.enableSimulation ?? true}
+                      onChange={(e) => setSettings({
+                        ...settings,
+                        arexanspay: { ...settings.arexanspay, enableSimulation: e.target.checked }
+                      })}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-purple-950 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-purple-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                  </label>
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div>
                 <label className="block text-purple-200 font-semibold mb-1">Nama Website / Hub</label>
