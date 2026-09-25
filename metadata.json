@@ -1,0 +1,6 @@
+{
+  "name": "MawwwHub - Official Roblox Script Hub & Store",
+  "description": "Website resmi penjualan script Roblox MawwwHub dengan sistem pembayaran otomatis ArexansPay QRIS dan Bank, instant key generator, dan loadstring integration.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

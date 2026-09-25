@@ -1,0 +1,154 @@
+{
+  "settings": {
+    "brandName": "MawwwHub",
+    "tagline": "The #1 Roblox Script Hub & Auto Delivery Store",
+    "heroHeadline": "MawwwHub Script Executor & VIP Hub",
+    "heroSubheadline": "Script Roblox terbaik, undetected, auto update & aktivasi key instan otomatis 24/7.",
+    "gameName": "Universal Support (Blox Fruits, Blade Ball, Da Hood, Brookhaven, etc)",
+    "scriptDescription": "MawwwHub memberikan kemudahan bermain Roblox dengan fitur paling lengkap, auto-farm super kencang, bypass anti-cheat termutakhir, serta tampilan GUI responsif untuk PC & Mobile.",
+    "scriptFeatures": [
+      "⚡ Auto Farm Level, Mastery & Quest Tercepat",
+      "🛡️ 100% Undetected & Anti-Ban Security Bypass",
+      "🎯 Aimbot, Silent Aim & Hitbox Expander",
+      "👁️ ESP Visual (Player, Chest, Fruit, NPC, Mob)",
+      "🚀 Instant Island Hop, Server Hop & Teleport",
+      "📱 Support Mobile (Delta, Fluxus, Codex, Arceus X) & PC (Solara, Wave)",
+      "🔄 Auto Update setiap kali Roblox maintenance"
+    ],
+    "discordUrl": "https://discord.gg/mawwwhub",
+    "telegramUrl": "https://t.me/mawwwhub",
+    "whatsappContact": "https://wa.me/6281234567890",
+    "announcementText": "🔥 PROMO LAUNCHING: Dapatkan diskon 30% untuk semua paket durasi script MawwwHub hari ini!",
+    "loadstringTemplate": "_G.MawwwHubKey = \"{KEY}\"\nloadstring(game:HttpGet(\"{API_BASE}/api/raw/mawwwhub?key=\" .. _G.MawwwHubKey))()",
+    "rawScriptBody": "-- [[ MawwwHub Official Script Hub - Premium Edition ]] --\n-- Protected & Managed by MawwwHub Authentication System\nlocal Players = game:GetService(\"Players\")\nlocal LocalPlayer = Players.LocalPlayer\nlocal TweenService = game:GetService(\"TweenService\")\nlocal HttpService = game:GetService(\"HttpService\")\n\nprint(\"[MawwwHub] Key verified successfully for: \" .. LocalPlayer.Name)\n\n-- Notify Player\npcall(function()\n    game:GetService(\"StarterGui\"):SetCore(\"SendNotification\", {\n        Title = \"💜 MawwwHub VIP Active\",\n        Text = \"Selamat datang! Key aktif. Menyiapkan GUI...\",\n        Duration = 6\n    })\nend)\n\n-- Main Hub Engine\nlocal MawwwHub = {\n    Version = \"v3.8.4\",\n    Key = \"{KEY}\",\n    ExpiresAt = \"{EXPIRES_AT}\",\n    Status = \"Authorized\"\n}\n\n-- Create UI Notification Banner\nlocal ScreenGui = Instance.new(\"ScreenGui\")\nScreenGui.Name = \"MawwwHub_Indicator\"\npcall(function()\n    ScreenGui.Parent = game:GetService(\"CoreGui\")\nend)\nif not ScreenGui.Parent then\n    ScreenGui.Parent = LocalPlayer:WaitForChild(\"PlayerGui\")\nend\n\nlocal MainBadge = Instance.new(\"Frame\")\nMainBadge.Size = UDim2.new(0, 220, 0, 42)\nMainBadge.Position = UDim2.new(1, -230, 0, 15)\nMainBadge.BackgroundColor3 = Color3.fromRGB(24, 10, 45)\nMainBadge.BorderSizePixel = 0\nMainBadge.Parent = ScreenGui\n\nlocal UICorner = Instance.new(\"UICorner\")\nUICorner.CornerRadius = UDim.new(0, 8)\nUICorner.Parent = MainBadge\n\nlocal UIGradient = Instance.new(\"UIGradient\")\nUIGradient.Color = ColorSequence.new{\n    ColorSequenceKeypoint.new(0, Color3.fromRGB(147, 51, 234)),\n    ColorSequenceKeypoint.new(1, Color3.fromRGB(88, 28, 135))\n}\nUIGradient.Parent = MainBadge\n\nlocal TitleLabel = Instance.new(\"TextLabel\")\nTitleLabel.Size = UDim2.new(1, -10, 1, 0)\nTitleLabel.Position = UDim2.new(0, 10, 0, 0)\nTitleLabel.BackgroundTransparency = 1\nTitleLabel.Text = \"💜 MawwwHub: Authenticated\"\nTitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)\nTitleLabel.Font = Enum.Font.GothamBold\nTitleLabel.TextSize = 13\nTitleLabel.TextXAlignment = Enum.TextXAlignment.Left\nTitleLabel.Parent = MainBadge\n\nprint(\"[MawwwHub] Script fully loaded & operational.\")",
+    "rawLoaderTemplate": "-- [[ MawwwHub Loader ]] --\n-- Paste kode ini di Executor Anda (Delta, Codex, Solara, Wave, dll):\n_G.MawwwHubKey = \"{KEY}\"\nloadstring(game:HttpGet(\"{API_BASE}/api/raw/mawwwhub?key=\" .. _G.MawwwHubKey))()",
+    "maxHwidPerKey": 1,
+    "enableHwidLock": false,
+    "arexanspay": {
+      "apiUrl": "https://arexanspay.my.id",
+      "apiKey": "arexanspay_07365360dc0f8af09d084ae8be829ce8499eca3f95c33bb0cfe3608e4aea9a44",
+      "qrisId": "axspay-na49b8c-ec96-41dc-a4e2-1293e755a81h",
+      "webhookSecret": "",
+      "numberId": 1,
+      "enableSimulation": true,
+      "defaultChannel": "qris"
+    },
+    "packages": [
+      {
+        "id": "pkg-1d",
+        "name": "Paket 1 Hari",
+        "durationDays": 1,
+        "durationLabel": "1 Hari (24 Jam)",
+        "price": 5000,
+        "isPopular": false,
+        "description": "Akses 24 jam penuh untuk uji coba fitur VIP",
+        "isActive": true
+      },
+      {
+        "id": "pkg-7d",
+        "name": "Paket 7 Hari (1 Minggu)",
+        "durationDays": 7,
+        "durationLabel": "7 Hari (1 Minggu)",
+        "price": 15000,
+        "isPopular": true,
+        "description": "Paket paling diminati! Pas untuk grinding mingguan",
+        "isActive": true
+      },
+      {
+        "id": "pkg-30d",
+        "name": "Paket 30 Hari (1 Bulan)",
+        "durationDays": 30,
+        "durationLabel": "30 Hari (1 Bulan)",
+        "price": 35000,
+        "isPopular": false,
+        "description": "Akses eksklusif 1 bulan penuh tanpa hambatan",
+        "isActive": true
+      },
+      {
+        "id": "pkg-perm",
+        "name": "Paket Lifetime (Permanen)",
+        "durationDays": -1,
+        "durationLabel": "Lifetime / Permanen",
+        "price": 75000,
+        "isPopular": false,
+        "description": "Akses selamanya termasuk semua update patch masa depan",
+        "isActive": true
+      }
+    ]
+  },
+  "keys": [
+    {
+      "key": "MWH-8E2P-FF98-88L3",
+      "packageId": "pkg-1d",
+      "packageName": "Paket 1 Hari",
+      "durationDays": 1,
+      "createdAt": "2026-09-25T15:52:38.373Z",
+      "expiresAt": "2026-09-26T15:52:38.373Z",
+      "status": "active",
+      "customerNote": "Simulated/Test Payment for TRX-MWH-MUH53ARN-9623",
+      "transactionId": "TRX-MWH-MUH53ARN-9623",
+      "robloxUsername": "TestPlayer99"
+    },
+    {
+      "key": "MWH-DEMO-LIFETIME-DEVKEY",
+      "packageId": "pkg-perm",
+      "packageName": "Paket Lifetime (Permanen)",
+      "durationDays": -1,
+      "createdAt": "2026-09-25T15:51:53.553Z",
+      "expiresAt": null,
+      "status": "active",
+      "customerNote": "Official Developer Key MawwwHub",
+      "robloxUsername": "Admin_MawwwHub"
+    }
+  ],
+  "transactions": [
+    {
+      "id": "TRX-MWH-MUH53ARN-9623",
+      "packageId": "pkg-1d",
+      "packageName": "Paket 1 Hari",
+      "durationDays": 1,
+      "baseAmount": 5000,
+      "uniqueCode": 32,
+      "totalAmount": 5032,
+      "paymentChannel": "qris",
+      "bankName": "QRIS ALL PAYMENT (GPN)",
+      "accountNumber": "QRIS STATIS MAWWWHUB",
+      "accountHolder": "MawwwHub Roblox Store",
+      "qrBase64": "data:image/png;base64,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",
+      "qrPayload": "00020101021226580016ID.CO.MAWWWHUB.WWW01189360091437105260220215TRX-MWH-MUH53ARN-962352045812530336054050325802ID5912MAWWWHUB6007JAKARTA62070703A016304ABCD",
+      "status": "success",
+      "createdAt": "2026-09-25T15:52:37.187Z",
+      "expiredAt": "2026-09-25T16:07:37.187Z",
+      "robloxUsername": "TestPlayer99",
+      "customerContact": "",
+      "arexanspayTrxId": "",
+      "paidAt": "2026-09-25T15:52:38.373Z",
+      "issuedKey": "MWH-8E2P-FF98-88L3"
+    },
+    {
+      "id": "TRX-MWH-MUH52NAL-6878",
+      "packageId": "pkg-7d",
+      "packageName": "Paket 7 Hari (1 Minggu)",
+      "durationDays": 7,
+      "baseAmount": 15000,
+      "uniqueCode": 109,
+      "totalAmount": 15109,
+      "paymentChannel": "qris",
+      "bankName": "QRIS ALL PAYMENT (GPN)",
+      "accountNumber": "QRIS STATIS MAWWWHUB",
+      "accountHolder": "MawwwHub Roblox Store",
+      "qrBase64": "data:image/png;base64,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",
+      "qrPayload": "00020101021226580016ID.CO.MAWWWHUB.WWW01189360091437105260220215TRX-MWH-MUH52NAL-6878520458125303360540151095802ID5912MAWWWHUB6007JAKARTA62070703A016304ABCD",
+      "status": "pending",
+      "createdAt": "2026-09-25T15:52:06.765Z",
+      "expiredAt": "2026-09-25T16:07:06.765Z",
+      "robloxUsername": "TestGamer",
+      "customerContact": "",
+      "arexanspayTrxId": ""
+    }
+  ],
+  "adminTokens": [
+    "mawwwhub-permanent-session-token",
+    "mawwwhub_auth_permanent_key_201122"
+  ]
+}
