@@ -13,6 +13,37 @@ const BACKUP_FILE = path.resolve(__dirname, '../data/store.json');
 
 let inMemoryDb: DatabaseSchema | null = null;
 
+export interface PaymentMethodConfig {
+  id: string;
+  name: string;
+  code: string;
+  category: 'qris' | 'ewallet' | 'bank';
+  accountNumber?: string;
+  accountHolder?: string;
+  instructions?: string;
+  isActive: boolean;
+  isDefault?: boolean;
+}
+
+export interface AdBannerConfig {
+  enabled: boolean;
+  type: 'image' | 'video' | 'youtube';
+  mediaUrl: string;
+  title?: string;
+  badge?: string;
+  description?: string;
+  targetUrl?: string;
+  buttonText?: string;
+  position: 'top' | 'middle' | 'bottom';
+}
+
+export interface HeroPillConfig {
+  id: string;
+  icon: 'zap' | 'shield' | 'check' | 'sparkles';
+  title: string;
+  description: string;
+}
+
 export interface ScriptPackage {
   id: string;
   name: string;
@@ -70,6 +101,16 @@ export interface AppSettings {
   tagline: string;
   heroHeadline: string;
   heroSubheadline: string;
+  statusBadgeText?: string;
+  statusBadgeType?: 'online' | 'updating' | 'maintenance';
+  statusSubtext?: string;
+  heroPills?: HeroPillConfig[];
+  adBanner?: AdBannerConfig;
+  quickToolsTitle?: string;
+  quickToolsDesc?: string;
+  quickToolsBtn1Text?: string;
+  quickToolsBtn2Text?: string;
+  footerText?: string;
   gameName: string;
   scriptDescription: string;
   scriptFeatures: string[];
@@ -86,6 +127,7 @@ export interface AppSettings {
   rawLoaderTemplate: string;
   maxHwidPerKey: number;
   enableHwidLock: boolean;
+  paymentMethods: PaymentMethodConfig[];
   // ArexansPay settings
   arexanspay: {
     apiUrl: string;
@@ -98,6 +140,177 @@ export interface AppSettings {
   };
   packages: ScriptPackage[];
 }
+
+export const defaultPaymentMethods: PaymentMethodConfig[] = [
+  {
+    id: 'qris',
+    name: 'QRIS All Payment (GPN)',
+    code: 'qris',
+    category: 'qris',
+    instructions: 'Scan QRIS dengan GoPay, OVO, DANA, ShopeePay, LinkAja, BCA, Mandiri, BRI, BNI atau aplikasi m-Banking manapun.',
+    isActive: true,
+    isDefault: true
+  },
+  {
+    id: 'dana',
+    name: 'DANA Instant',
+    code: 'dana',
+    category: 'ewallet',
+    accountNumber: '081234567890',
+    accountHolder: 'MawwwHub Store',
+    instructions: 'Transfer ke nomor akun DANA di atas. Masukkan nominal tepat beserta kode unik agar otomatis terkonfirmasi.',
+    isActive: true
+  },
+  {
+    id: 'gopay',
+    name: 'GoPay / Gojek',
+    code: 'gopay',
+    category: 'ewallet',
+    accountNumber: '081234567890',
+    accountHolder: 'MawwwHub Store',
+    instructions: 'Transfer saldo GoPay ke nomor di atas. Pembayaran terverifikasi otomatis.',
+    isActive: true
+  },
+  {
+    id: 'ovo',
+    name: 'OVO Cash',
+    code: 'ovo',
+    category: 'ewallet',
+    accountNumber: '081234567890',
+    accountHolder: 'MawwwHub Store',
+    instructions: 'Buka aplikasi OVO dan transfer ke nomor di atas sesuai total pembayaran.',
+    isActive: true
+  },
+  {
+    id: 'shopeepay',
+    name: 'ShopeePay',
+    code: 'shopeepay',
+    category: 'ewallet',
+    accountNumber: '081234567890',
+    accountHolder: 'MawwwHub Store',
+    instructions: 'Transfer ShopeePay ke nomor di atas dengan nominal yang tepat.',
+    isActive: true
+  },
+  {
+    id: 'linkaja',
+    name: 'LinkAja',
+    code: 'linkaja',
+    category: 'ewallet',
+    accountNumber: '081234567890',
+    accountHolder: 'MawwwHub Store',
+    instructions: 'Transfer via aplikasi LinkAja ke nomor tertera.',
+    isActive: false
+  },
+  {
+    id: 'bank_bca',
+    name: 'Bank Central Asia (BCA)',
+    code: 'bca',
+    category: 'bank',
+    accountNumber: '8735091823',
+    accountHolder: 'MawwwHub Store',
+    instructions: 'Transfer via m-BCA atau KlikBCA. Wajib transfer sesuai nominal hingga 3 digit kode unik.',
+    isActive: true
+  },
+  {
+    id: 'bank_bri',
+    name: 'Bank Rakyat Indonesia (BRI)',
+    code: 'bri',
+    category: 'bank',
+    accountNumber: '012901092839501',
+    accountHolder: 'MawwwHub Store',
+    instructions: 'Transfer via BRImo atau ATM BRI dengan nominal pas termasuk kode unik.',
+    isActive: true
+  },
+  {
+    id: 'bank_mandiri',
+    name: 'Bank Mandiri (Livin)',
+    code: 'mandiri',
+    category: 'bank',
+    accountNumber: '1370019284950',
+    accountHolder: 'MawwwHub Store',
+    instructions: 'Transfer via Livin by Mandiri. Transfer tepat sesuai kode unik.',
+    isActive: true
+  },
+  {
+    id: 'bank_bni',
+    name: 'Bank Negara Indonesia (BNI)',
+    code: 'bni',
+    category: 'bank',
+    accountNumber: '0981726481',
+    accountHolder: 'MawwwHub Store',
+    instructions: 'Transfer via BNI Mobile Banking dengan nominal tepat.',
+    isActive: true
+  },
+  {
+    id: 'bank_seabank',
+    name: 'SeaBank (Transfer Gratis)',
+    code: 'seabank',
+    category: 'bank',
+    accountNumber: '901928475829',
+    accountHolder: 'MawwwHub Store',
+    instructions: 'Bebas biaya admin transfer dari e-wallet/bank lain ke rekening SeaBank ini.',
+    isActive: true
+  },
+  {
+    id: 'bank_bsi',
+    name: 'Bank Syariah Indonesia (BSI)',
+    code: 'bsi',
+    category: 'bank',
+    accountNumber: '7192837495',
+    accountHolder: 'MawwwHub Store',
+    instructions: 'Transfer via BSI Mobile. Transfer nominal tepat untuk aktivasi instan.',
+    isActive: true
+  },
+  {
+    id: 'bank_permata',
+    name: 'Bank Permata',
+    code: 'permata',
+    category: 'bank',
+    accountNumber: '49281729384',
+    accountHolder: 'MawwwHub Store',
+    instructions: 'Transfer via PermataMobile X atau ATM Permata.',
+    isActive: false
+  }
+];
+
+export const defaultAdBanner: AdBannerConfig = {
+  enabled: false,
+  type: 'image',
+  mediaUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80',
+  title: '🔥 Promo Spesial MawwwHub VIP Script',
+  badge: 'OFFICIAL UPDATE',
+  description: 'Dapatkan akses eksklusif auto-farm dan fitur premium dengan diskon terbatas!',
+  targetUrl: '#packages-section',
+  buttonText: 'Beli Key Sekarang',
+  position: 'middle'
+};
+
+export const defaultHeroPills: HeroPillConfig[] = [
+  {
+    id: 'pill-1',
+    icon: 'zap',
+    title: 'Instan Delivery',
+    description: 'Key & loadstring langsung terbit hitungan detik setelah bayar.'
+  },
+  {
+    id: 'pill-2',
+    icon: 'shield',
+    title: 'Bypass Anti-Cheat',
+    description: 'Perlindungan keamanan tinggi aman dari ban Roblox.'
+  },
+  {
+    id: 'pill-3',
+    icon: 'check',
+    title: 'Multi-Payment Otomatis',
+    description: 'Mendukung QRIS, DANA, GoPay, OVO, BCA, BRI, Mandiri, SeaBank.'
+  },
+  {
+    id: 'pill-4',
+    icon: 'sparkles',
+    title: 'Universal Support',
+    description: 'Lancar untuk Delta, Codex, Arceus X, Solara & Wave.'
+  }
+];
 
 export interface DatabaseSchema {
   settings: AppSettings;
@@ -112,6 +325,16 @@ const defaultSettings: AppSettings = {
   tagline: "The #1 Roblox Script Hub & Auto Delivery Store",
   heroHeadline: "MawwwHub Script Executor & VIP Hub",
   heroSubheadline: "Script Roblox terbaik, undetected, auto update & aktivasi key instan otomatis 24/7.",
+  statusBadgeText: "MawwwHub Status: Undetected & Online",
+  statusBadgeType: "online",
+  statusSubtext: "ArexansPay Multi-Payment Aktif",
+  heroPills: defaultHeroPills,
+  adBanner: defaultAdBanner,
+  quickToolsTitle: "Sudah Punya Key MawwwHub?",
+  quickToolsDesc: "Cek sisa masa aktif key Anda atau pelajari cara eksekusi script di HP Android dan PC.",
+  quickToolsBtn1Text: "Cek Validasi Key",
+  quickToolsBtn2Text: "Tutorial Executor",
+  footerText: "Powered by ArexansPay Multi-Bank & QRIS Automation",
   gameName: "Universal Support (Blox Fruits, Blade Ball, Da Hood, Brookhaven, etc)",
   scriptDescription: "MawwwHub memberikan kemudahan bermain Roblox dengan fitur paling lengkap, auto-farm super kencang, bypass anti-cheat termutakhir, serta tampilan GUI responsif untuk PC & Mobile.",
   scriptFeatures: [
@@ -130,10 +353,9 @@ const defaultSettings: AppSettings = {
   enableOrderUsername: false,
   enableOrderWhatsapp: false,
   enableCustomKeyOrder: true,
+  // Clean protected loadstring: DOES NOT leak raw HWID to public!
   loadstringTemplate: `_G.MawwwHubKey = "{KEY}"
-local p = game:GetService("Players").LocalPlayer
-local h = (gethwid and gethwid()) or (getgenv and getgenv().gethwid and getgenv().gethwid()) or (identifyexecutor and identifyexecutor() .. "_" .. game:GetService("RbxAnalyticsService"):GetClientId()) or tostring(p.UserId)
-loadstring(game:HttpGet("{API_BASE}/api/raw/mawwwhub?key=" .. _G.MawwwHubKey .. "&player=" .. p.Name .. "&hwid=" .. h))()`,
+loadstring(game:HttpGet("{API_BASE}/api/raw/mawwwhub?key=" .. _G.MawwwHubKey))()`,
   rawScriptBody: `-- [[ MawwwHub Official Script Hub - Ultra Mini HUD & Realtime Device Sync ]] --
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
@@ -406,6 +628,7 @@ _G.MawwwHubKey = "{KEY}"
 loadstring(game:HttpGet("{API_BASE}/api/raw/mawwwhub?key=" .. _G.MawwwHubKey))()`,
   maxHwidPerKey: 1,
   enableHwidLock: true,
+  paymentMethods: defaultPaymentMethods,
   arexanspay: {
     apiUrl: "https://arexanspay.my.id",
     apiKey: "arexanspay_07365360dc0f8af09d084ae8be829ce8499eca3f95c33bb0cfe3608e4aea9a44",
@@ -500,9 +723,27 @@ export function readDatabase(): DatabaseSchema {
       if (!data.settings.rawScriptBody || data.settings.rawScriptBody.includes("MawwwHub_Indicator") || data.settings.rawScriptBody.includes("DurationCard")) {
         data.settings.rawScriptBody = defaultSettings.rawScriptBody;
       }
-      if (!data.settings.loadstringTemplate || !data.settings.loadstringTemplate.includes("player")) {
+      // Sanitize old loadstring template that leaked raw HWID to public
+      if (!data.settings.loadstringTemplate || data.settings.loadstringTemplate.includes("gethwid") || data.settings.loadstringTemplate.includes("getgenv") || data.settings.loadstringTemplate.includes("RbxAnalyticsService")) {
         data.settings.loadstringTemplate = defaultSettings.loadstringTemplate;
       }
+      if (!data.settings.paymentMethods || !Array.isArray(data.settings.paymentMethods) || data.settings.paymentMethods.length === 0) {
+        data.settings.paymentMethods = defaultPaymentMethods;
+      }
+      if (!data.settings.adBanner) {
+        data.settings.adBanner = defaultAdBanner;
+      }
+      if (!data.settings.heroPills || !Array.isArray(data.settings.heroPills) || data.settings.heroPills.length === 0) {
+        data.settings.heroPills = defaultHeroPills;
+      }
+      if (!data.settings.statusBadgeText) data.settings.statusBadgeText = defaultSettings.statusBadgeText;
+      if (!data.settings.statusBadgeType) data.settings.statusBadgeType = defaultSettings.statusBadgeType;
+      if (!data.settings.statusSubtext) data.settings.statusSubtext = defaultSettings.statusSubtext;
+      if (!data.settings.quickToolsTitle) data.settings.quickToolsTitle = defaultSettings.quickToolsTitle;
+      if (!data.settings.quickToolsDesc) data.settings.quickToolsDesc = defaultSettings.quickToolsDesc;
+      if (!data.settings.quickToolsBtn1Text) data.settings.quickToolsBtn1Text = defaultSettings.quickToolsBtn1Text;
+      if (!data.settings.quickToolsBtn2Text) data.settings.quickToolsBtn2Text = defaultSettings.quickToolsBtn2Text;
+      if (!data.settings.footerText) data.settings.footerText = defaultSettings.footerText;
       if (!data.keys) data.keys = [];
       if (!data.transactions) data.transactions = [];
       if (!data.adminTokens) data.adminTokens = ["mawwwhub-permanent-session-token"];

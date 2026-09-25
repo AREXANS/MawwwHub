@@ -98,6 +98,16 @@ export function createExpressApp() {
         tagline: s.tagline,
         heroHeadline: s.heroHeadline,
         heroSubheadline: s.heroSubheadline,
+        statusBadgeText: s.statusBadgeText,
+        statusBadgeType: s.statusBadgeType,
+        statusSubtext: s.statusSubtext,
+        heroPills: s.heroPills,
+        adBanner: s.adBanner,
+        quickToolsTitle: s.quickToolsTitle,
+        quickToolsDesc: s.quickToolsDesc,
+        quickToolsBtn1Text: s.quickToolsBtn1Text,
+        quickToolsBtn2Text: s.quickToolsBtn2Text,
+        footerText: s.footerText,
         gameName: s.gameName,
         scriptDescription: s.scriptDescription,
         scriptFeatures: s.scriptFeatures,
@@ -109,6 +119,7 @@ export function createExpressApp() {
         enableOrderWhatsapp: s.enableOrderWhatsapp ?? false,
         enableCustomKeyOrder: s.enableCustomKeyOrder ?? true,
         packages: s.packages.filter(p => p.isActive),
+        paymentMethods: (s.paymentMethods || []).filter(m => m.isActive),
         defaultChannel: s.arexanspay.defaultChannel || 'qris',
         simulationEnabled: s.arexanspay.enableSimulation ?? true,
         apiBase: baseUrl
@@ -384,12 +395,13 @@ export function createExpressApp() {
       const expiredAt = new Date(now.getTime() + 15 * 60 * 1000).toISOString();
 
       const channel = paymentChannel || 'qris';
+      const selectedMethod = (db.settings.paymentMethods || []).find(m => m.id === channel || m.code === channel);
       let qrBase64 = '';
       let qrPayload = '';
       let arexanspayTrxId = '';
-      let bankName = 'QRIS ALL PAYMENT (GPN)';
-      let accountNumber = 'QRIS STATIS MAWWWHUB';
-      let accountHolder = 'MawwwHub Roblox Store';
+      let bankName = selectedMethod?.name || (channel === 'qris' ? 'QRIS ALL PAYMENT (GPN)' : channel.toUpperCase());
+      let accountNumber = selectedMethod?.accountNumber || (selectedMethod?.category === 'bank' ? '8735091823' : (selectedMethod?.category === 'ewallet' ? '081234567890' : 'QRIS STATIS MAWWWHUB'));
+      let accountHolder = selectedMethod?.accountHolder || 'MawwwHub Roblox Store';
 
       const arexConfig = db.settings.arexanspay;
       let usedRealGateway = false;
@@ -399,7 +411,7 @@ export function createExpressApp() {
           const createUrl = arexConfig.apiUrl.replace(/\/$/, '') + '/api/v1/create';
           const payload = {
             base_amount: pkg.price,
-            payment_channel: channel,
+            payment_channel: selectedMethod?.code || channel,
             qris_id: arexConfig.qrisId,
             number_id: arexConfig.numberId || 1
           };
@@ -428,7 +440,7 @@ export function createExpressApp() {
             }
           }
         } catch (gatewayErr) {
-          console.warn("ArexansPay call failed, falling back to local QRIS generator:", gatewayErr);
+          console.warn("ArexansPay call failed, falling back to local payment handler:", gatewayErr);
         }
       }
 
@@ -923,6 +935,52 @@ export function createExpressApp() {
       return res.status(403).send(
         `-- [MawwwHub Security Error]\nerror("[MawwwHub] Key '${key}' telah dinonaktifkan (Status: ${keyObj.status}). Hubungi admin MawwwHub.")`
       );
+    }
+
+    // Protected Loader Mode:
+    // When executed via the clean public loadstring (_G.MawwwHubKey = "KEY"; loadstring(game:HttpGet(...))()),
+    // no raw HWID is exposed in public. The server returns this internal loader that computes HWID in memory
+    // and fetches the secured payload seamlessly.
+    if (!hwid && req.query.sec !== '1') {
+      const loaderCode = `-- [[ MawwwHub Protected Roblox Script Loader ]] --
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+local LocalPlayer = Players.LocalPlayer
+
+local function getExecutorHwid()
+    local id = ""
+    pcall(function()
+        if gethwid then
+            id = gethwid()
+        elseif getgenv and getgenv().gethwid then
+            id = getgenv().gethwid()
+        elseif identifyexecutor then
+            local exec = identifyexecutor()
+            local cid = ""
+            pcall(function() cid = game:GetService("RbxAnalyticsService"):GetClientId() end)
+            id = exec .. "_" .. (cid ~= "" and cid or tostring(LocalPlayer.UserId))
+        else
+            pcall(function() id = game:GetService("RbxAnalyticsService"):GetClientId() end)
+            if not id or id == "" then
+                id = "RBX_" .. tostring(LocalPlayer.UserId)
+            end
+        end
+    end)
+    return (id and id ~= "") and id or ("RBX_ID_" .. tostring(LocalPlayer.UserId))
+end
+
+local h = getExecutorHwid()
+local pName = (LocalPlayer and LocalPlayer.Name) or "User"
+local secUrl = "${baseUrl}/api/raw/mawwwhub?key=${encodeURIComponent(keyObj.key)}&hwid=" .. HttpService:UrlEncode(h) .. "&player=" .. HttpService:UrlEncode(pName) .. "&sec=1"
+local ok, payload = pcall(function() return game:HttpGet(secUrl) end)
+if ok and payload and not string.find(payload, "MawwwHub Security Error") then
+    loadstring(payload)()
+elseif payload then
+    loadstring(payload)()
+else
+    warn("[MawwwHub] Gagal mengunduh modul proteksi script.")
+end`;
+      return res.status(200).send(loaderCode);
     }
 
     // HWID Enforcement: Strictly 1 device only

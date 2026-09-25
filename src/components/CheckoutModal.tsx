@@ -13,9 +13,13 @@ import {
   Key,
   CheckCircle2,
   Terminal,
-  HelpCircle
+  HelpCircle,
+  CreditCard,
+  Smartphone,
+  Building2,
+  ChevronDown
 } from 'lucide-react';
-import { ScriptPackage, Transaction, AppPublicSettings } from '../types';
+import { ScriptPackage, Transaction, AppPublicSettings, PaymentMethodConfig } from '../types';
 
 interface CheckoutModalProps {
   pkg: ScriptPackage | null;
@@ -35,6 +39,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [customerContact, setCustomerContact] = useState('');
   const [customKey, setCustomKey] = useState('');
   const [paymentChannel, setPaymentChannel] = useState('qris');
+  const [channelCategoryFilter, setChannelCategoryFilter] = useState<'all' | 'qris' | 'ewallet' | 'bank'>('all');
+  const [showAltQr, setShowAltQr] = useState(false);
+  const [copiedAccount, setCopiedAccount] = useState(false);
+  const [copiedNominal, setCopiedNominal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -47,6 +55,28 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [copiedScript, setCopiedScript] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
 
+  // Available payment methods from settings or defaults
+  const paymentMethods: PaymentMethodConfig[] = (settings?.paymentMethods && settings.paymentMethods.length > 0)
+    ? settings.paymentMethods
+    : [
+        { id: 'qris', name: 'QRIS All Payment (GPN)', code: 'qris', category: 'qris', isActive: true, isDefault: true },
+        { id: 'dana', name: 'DANA Instant', code: 'dana', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', isActive: true },
+        { id: 'gopay', name: 'GoPay / Gojek', code: 'gopay', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', isActive: true },
+        { id: 'ovo', name: 'OVO Cash', code: 'ovo', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', isActive: true },
+        { id: 'bank_bca', name: 'Bank Central Asia (BCA)', code: 'bca', category: 'bank', accountNumber: '8735091823', accountHolder: 'MawwwHub Store', isActive: true },
+        { id: 'bank_seabank', name: 'SeaBank (Transfer Gratis)', code: 'seabank', category: 'bank', accountNumber: '901928475829', accountHolder: 'MawwwHub Store', isActive: true }
+      ];
+
+  const activeMethods = paymentMethods.filter(m => m.isActive);
+
+  // Initialize selected channel on load
+  useEffect(() => {
+    if (activeMethods.length > 0 && !activeMethods.some(m => m.id === paymentChannel || m.code === paymentChannel)) {
+      const def = activeMethods.find(m => m.isDefault) || activeMethods[0];
+      setPaymentChannel(def.id || def.code);
+    }
+  }, [activeMethods]);
+
   // Format Rupiah
   const formatRupiah = (num: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -55,6 +85,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       minimumFractionDigits: 0
     }).format(num);
   };
+
+  // Filtered payment methods
+  const filteredMethods = activeMethods.filter(m => {
+    if (channelCategoryFilter === 'all') return true;
+    return m.category === channelCategoryFilter;
+  });
+
+  const selectedMethodObj = activeMethods.find(m => m.id === paymentChannel || m.code === paymentChannel) || activeMethods[0];
 
   // 1. Submit Order to Backend (ArexansPay)
   const handleCreateOrder = async (e: React.FormEvent) => {
@@ -221,6 +259,18 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     setTimeout(() => setCopiedScript(false), 2500);
   };
 
+  const copyAccountNumber = (acc: string) => {
+    navigator.clipboard.writeText(acc);
+    setCopiedAccount(true);
+    setTimeout(() => setCopiedAccount(false), 2500);
+  };
+
+  const copyTotalNominal = (amt: number) => {
+    navigator.clipboard.writeText(String(amt));
+    setCopiedNominal(true);
+    setTimeout(() => setCopiedNominal(false), 2500);
+  };
+
   // Format seconds to mm:ss
   const formatTime = (sec: number) => {
     const m = Math.floor(sec / 60);
@@ -230,6 +280,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   if (!pkg) return null;
 
+  const isBankOrEwallet = selectedMethodObj?.category === 'bank' || selectedMethodObj?.category === 'ewallet';
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in overflow-y-auto">
       <div className="relative w-full max-w-lg rounded-2xl bg-[#100722] border border-purple-700/60 shadow-2xl shadow-purple-900/60 text-white overflow-hidden my-8">
@@ -238,12 +290,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         <div className="flex items-center justify-between px-6 py-4 border-b border-purple-900/50 bg-[#160a2f]">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-purple-600/30 flex items-center justify-center border border-purple-500/40">
-              <QrCode className="w-4 h-4 text-purple-300" />
+              <CreditCard className="w-4 h-4 text-purple-300" />
             </div>
             <div>
               <h3 className="font-bold text-sm text-white">
                 {step === 'form' && 'Pembelian Script MawwwHub'}
-                {step === 'payment' && 'Pembayaran ArexansPay QRIS'}
+                {step === 'payment' && `Pembayaran ${transaction?.bankName || 'ArexansPay'}`}
                 {step === 'success' && 'Pembayaran Berhasil! Key MawwwHub'}
               </h3>
               <p className="text-[11px] text-purple-300/70 font-mono-code">
@@ -347,54 +399,104 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </div>
               )}
 
-              <div>
-                <label className="block text-xs font-semibold text-purple-200 mb-1.5">
-                  Metode Pembayaran
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <label
-                    onClick={() => setPaymentChannel('qris')}
-                    className={`flex items-center gap-2 p-3 rounded-xl border cursor-pointer transition text-xs ${
-                      paymentChannel === 'qris'
-                        ? 'bg-purple-900/40 border-purple-500 text-white'
-                        : 'bg-purple-950/20 border-purple-900/50 text-purple-300/70 hover:bg-purple-950/40'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="channel"
-                      checked={paymentChannel === 'qris'}
-                      onChange={() => setPaymentChannel('qris')}
-                      className="hidden"
-                    />
-                    <QrCode className="w-4 h-4 text-purple-400" />
-                    <div>
-                      <div className="font-bold">QRIS GPN Otomatis</div>
-                      <div className="text-[10px] text-purple-400/70">BCA, Dana, Gopay, Ovo, dll</div>
-                    </div>
+              {/* PAYMENT METHOD SELECTION */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-semibold text-purple-200">
+                    Pilih Metode Pembayaran
                   </label>
+                  <span className="text-[10px] text-purple-400 font-mono-code">
+                    ArexansPay Multi-Channel
+                  </span>
+                </div>
 
-                  <label
-                    onClick={() => setPaymentChannel('bank_seabank')}
-                    className={`flex items-center gap-2 p-3 rounded-xl border cursor-pointer transition text-xs ${
-                      paymentChannel === 'bank_seabank'
-                        ? 'bg-purple-900/40 border-purple-500 text-white'
-                        : 'bg-purple-950/20 border-purple-900/50 text-purple-300/70 hover:bg-purple-950/40'
+                {/* Category Filter Tabs */}
+                <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#080214] border border-purple-900/60 text-[11px]">
+                  <button
+                    type="button"
+                    onClick={() => setChannelCategoryFilter('all')}
+                    className={`flex-1 py-1 rounded-lg font-semibold transition ${
+                      channelCategoryFilter === 'all'
+                        ? 'bg-purple-600 text-white shadow-sm'
+                        : 'text-purple-300/70 hover:text-white'
                     }`}
                   >
-                    <input
-                      type="radio"
-                      name="channel"
-                      checked={paymentChannel === 'bank_seabank'}
-                      onChange={() => setPaymentChannel('bank_seabank')}
-                      className="hidden"
-                    />
-                    <ShieldCheck className="w-4 h-4 text-cyan-400" />
-                    <div>
-                      <div className="font-bold">Transfer Bank / SeaBank</div>
-                      <div className="text-[10px] text-purple-400/70">Verifikasi kode unik</div>
-                    </div>
-                  </label>
+                    Semua ({activeMethods.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setChannelCategoryFilter('qris')}
+                    className={`flex-1 py-1 rounded-lg font-semibold transition ${
+                      channelCategoryFilter === 'qris'
+                        ? 'bg-purple-600 text-white shadow-sm'
+                        : 'text-purple-300/70 hover:text-white'
+                    }`}
+                  >
+                    QRIS
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setChannelCategoryFilter('ewallet')}
+                    className={`flex-1 py-1 rounded-lg font-semibold transition ${
+                      channelCategoryFilter === 'ewallet'
+                        ? 'bg-purple-600 text-white shadow-sm'
+                        : 'text-purple-300/70 hover:text-white'
+                    }`}
+                  >
+                    E-Wallet
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setChannelCategoryFilter('bank')}
+                    className={`flex-1 py-1 rounded-lg font-semibold transition ${
+                      channelCategoryFilter === 'bank'
+                        ? 'bg-purple-600 text-white shadow-sm'
+                        : 'text-purple-300/70 hover:text-white'
+                    }`}
+                  >
+                    Bank & VA
+                  </button>
+                </div>
+
+                {/* Methods Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1 custom-scrollbar">
+                  {filteredMethods.map((method) => {
+                    const isSelected = paymentChannel === method.id || paymentChannel === method.code;
+                    return (
+                      <div
+                        key={method.id}
+                        onClick={() => setPaymentChannel(method.id || method.code)}
+                        className={`p-3 rounded-xl border cursor-pointer transition text-xs flex items-center gap-2.5 ${
+                          isSelected
+                            ? 'bg-purple-900/50 border-purple-500 shadow-md shadow-purple-900/40 text-white'
+                            : 'bg-purple-950/20 border-purple-900/40 text-purple-300/70 hover:bg-purple-950/40 hover:text-purple-100'
+                        }`}
+                      >
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                          isSelected ? 'bg-purple-600 text-white' : 'bg-purple-900/40 text-purple-400'
+                        }`}>
+                          {method.category === 'qris' && <QrCode className="w-4 h-4" />}
+                          {method.category === 'ewallet' && <Smartphone className="w-4 h-4" />}
+                          {method.category === 'bank' && <Building2 className="w-4 h-4" />}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold truncate text-white">{method.name}</div>
+                          <div className="text-[10px] text-purple-400/80 truncate">
+                            {method.category === 'qris' && 'GPN Semua Aplikasi & Bank'}
+                            {method.category === 'ewallet' && (method.accountNumber ? `No: ${method.accountNumber}` : 'Konfirmasi Instan')}
+                            {method.category === 'bank' && (method.accountNumber ? `Rek: ${method.accountNumber}` : 'Transfer Bank / VA')}
+                          </div>
+                        </div>
+
+                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center flex-shrink-0 ${
+                          isSelected ? 'border-purple-400 bg-purple-500 text-white' : 'border-purple-800'
+                        }`}>
+                          {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -419,7 +521,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             </form>
           )}
 
-          {/* STEP 2: PAYMENT WITH AREXANSPAY QRIS */}
+          {/* STEP 2: PAYMENT SCREEN */}
           {step === 'payment' && transaction && (
             <div className="space-y-4 text-center">
               
@@ -435,31 +537,103 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </div>
               </div>
 
-              {/* QRIS Display Container */}
-              <div className="p-4 rounded-2xl bg-white text-slate-900 shadow-xl max-w-[270px] mx-auto border-4 border-purple-500/40">
-                <div className="text-[11px] font-black uppercase tracking-wider text-slate-600 mb-1">
-                  QRIS STANDAR PEMBAYARAN NASIONAL
-                </div>
-
-                {transaction.qrBase64 ? (
-                  <img
-                    src={transaction.qrBase64}
-                    alt="ArexansPay QRIS"
-                    className="w-full h-auto aspect-square rounded-lg object-contain mx-auto"
-                  />
-                ) : (
-                  <div className="w-full aspect-square bg-slate-100 flex items-center justify-center text-xs text-slate-400">
-                    Memuat Barcode...
+              {/* PAYMENT DETAILS: BANK / E-WALLET DIRECT DETAILS OR QRIS */}
+              {isBankOrEwallet && transaction.accountNumber && transaction.accountNumber !== 'QRIS STATIS MAWWWHUB' ? (
+                /* Bank Transfer / E-Wallet Container */
+                <div className="p-4 rounded-2xl bg-[#090216] border border-purple-600/50 shadow-xl space-y-3 text-left">
+                  <div className="flex items-center justify-between border-b border-purple-900/40 pb-2.5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-purple-600/30 border border-purple-500/40 flex items-center justify-center text-purple-300">
+                        {selectedMethodObj?.category === 'bank' ? <Building2 className="w-4 h-4" /> : <Smartphone className="w-4 h-4" />}
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400">
+                          {selectedMethodObj?.category === 'bank' ? 'Transfer Bank' : 'Transfer E-Wallet'}
+                        </span>
+                        <h4 className="text-sm font-bold text-white">{transaction.bankName}</h4>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-mono-code px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-800">
+                      Otomatis
+                    </span>
                   </div>
-                )}
 
-                <div className="text-[11px] font-bold text-slate-800 mt-1 truncate">
-                  {transaction.accountHolder || 'MawwwHub Store'}
+                  {/* Account Number Box */}
+                  <div className="p-3 rounded-xl bg-[#110526] border border-purple-800/60">
+                    <span className="text-[10px] text-purple-300/80 block mb-1">
+                      {selectedMethodObj?.category === 'bank' ? 'Nomor Rekening Tujuan:' : 'Nomor Akun E-Wallet:'}
+                    </span>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono-code text-lg sm:text-xl font-black text-cyan-300 tracking-wider">
+                        {transaction.accountNumber}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => copyAccountNumber(transaction.accountNumber || '')}
+                        className="px-2.5 py-1.5 rounded-lg bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-800/60 text-xs font-bold flex items-center gap-1 transition"
+                      >
+                        {copiedAccount ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>{copiedAccount ? 'Tersalin' : 'Salin'}</span>
+                      </button>
+                    </div>
+                    <span className="text-[11px] text-purple-300/70 block mt-1">
+                      Atas Nama: <b className="text-white">{transaction.accountHolder || 'MawwwHub Store'}</b>
+                    </span>
+                  </div>
+
+                  {/* Optional Barcode Toggle */}
+                  {transaction.qrBase64 && (
+                    <div className="pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setShowAltQr(!showAltQr)}
+                        className="text-[11px] text-purple-400 hover:text-purple-200 flex items-center gap-1 font-medium"
+                      >
+                        <QrCode className="w-3.5 h-3.5" />
+                        <span>{showAltQr ? 'Sembunyikan QRIS Alternatif' : 'Atau Scan Barcode QRIS Alternatif'}</span>
+                        <ChevronDown className={`w-3 h-3 transition-transform ${showAltQr ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {showAltQr && (
+                        <div className="mt-2 p-3 bg-white rounded-xl max-w-[200px] mx-auto text-center border-2 border-purple-500">
+                          <img
+                            src={transaction.qrBase64}
+                            alt="QRIS Alternative"
+                            className="w-full h-auto aspect-square object-contain"
+                          />
+                          <span className="text-[9px] font-bold text-slate-700 block mt-1">QRIS ALL PAYMENT</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <div className="text-[9px] text-slate-500 font-mono-code">
-                  NMID: ID1020021590123 / {transaction.bankName}
+              ) : (
+                /* QRIS Mode Container */
+                <div className="p-4 rounded-2xl bg-white text-slate-900 shadow-xl max-w-[270px] mx-auto border-4 border-purple-500/40">
+                  <div className="text-[11px] font-black uppercase tracking-wider text-slate-600 mb-1">
+                    QRIS STANDAR PEMBAYARAN NASIONAL
+                  </div>
+
+                  {transaction.qrBase64 ? (
+                    <img
+                      src={transaction.qrBase64}
+                      alt="ArexansPay QRIS"
+                      className="w-full h-auto aspect-square rounded-lg object-contain mx-auto"
+                    />
+                  ) : (
+                    <div className="w-full aspect-square bg-slate-100 flex items-center justify-center text-xs text-slate-400">
+                      Memuat Barcode...
+                    </div>
+                  )}
+
+                  <div className="text-[11px] font-bold text-slate-800 mt-1 truncate">
+                    {transaction.accountHolder || 'MawwwHub Store'}
+                  </div>
+                  <div className="text-[9px] text-slate-500 font-mono-code">
+                    NMID: ID1020021590123 / {transaction.bankName}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Amount to pay (Critical Unique Amount) */}
               <div className="p-3.5 rounded-xl bg-purple-950/60 border border-purple-800/60">
@@ -469,14 +643,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 <div className="text-2xl font-black text-amber-300 font-mono-code flex items-center justify-center gap-2">
                   <span>{formatRupiah(transaction.totalAmount)}</span>
                   <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(String(transaction.totalAmount));
-                      alert(`Nominal ${transaction.totalAmount} disalin!`);
-                    }}
-                    className="p-1 rounded bg-purple-900/60 hover:bg-purple-800 text-purple-300 text-[10px]"
+                    type="button"
+                    onClick={() => copyTotalNominal(transaction.totalAmount)}
+                    className="p-1 rounded bg-purple-900/60 hover:bg-purple-800 text-purple-300 text-[10px] flex items-center gap-1"
                     title="Salin nominal"
                   >
-                    <Copy className="w-3.5 h-3.5" />
+                    {copiedNominal ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span className="text-[10px] font-sans">{copiedNominal ? 'Disalin' : 'Salin'}</span>
                   </button>
                 </div>
                 <span className="text-[10px] text-purple-400 block mt-1">
@@ -487,6 +660,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               {/* Action Buttons */}
               <div className="space-y-2 pt-2">
                 <button
+                  type="button"
                   onClick={handleManualCheck}
                   disabled={isCheckingStatus}
                   className="w-full py-2.5 px-4 rounded-xl font-bold text-xs bg-purple-800/80 hover:bg-purple-700 text-white border border-purple-600/50 flex items-center justify-center gap-2 transition"
@@ -503,7 +677,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     className="w-full py-2 px-3 rounded-lg text-[11px] font-semibold text-purple-300/80 bg-purple-950/40 hover:bg-purple-900/50 border border-dashed border-purple-700/50 flex items-center justify-center gap-1.5 transition"
                   >
                     <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                    <span>Simulasi Bayar Berhasil (Test Mode Instan)</span>
+                    <span>⚡ Simulasi Bayar Berhasil (Test Mode Instan)</span>
                   </button>
                 )}
               </div>
@@ -511,13 +685,24 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               <div className="text-[11px] text-purple-400/80 text-left space-y-1 bg-[#0c051a] p-3 rounded-xl border border-purple-900/30">
                 <div className="font-semibold text-purple-300 flex items-center gap-1">
                   <HelpCircle className="w-3 h-3 text-purple-400" />
-                  <span>Instruksi Pembayaran:</span>
+                  <span>Petunjuk Pembayaran:</span>
                 </div>
                 <ol className="list-decimal list-inside space-y-0.5 pl-1">
-                  <li>Buka m-Banking (BCA, Mandiri, BRI, SeaBank) atau E-Wallet (DANA, Gopay, OVO, ShopeePay).</li>
-                  <li>Pilih menu <b>Scan QR / QRIS</b> lalu scan barcode di atas atau simpan tangkapan layar.</li>
-                  <li>Pastikan nominal transfer sama persis hingga digit terakhir.</li>
-                  <li>Setelah transfer berhasil, halaman ini akan otomatis membuka Key & Loadstring Anda!</li>
+                  {isBankOrEwallet ? (
+                    <>
+                      <li>Buka aplikasi Bank atau E-Wallet pilihan Anda ({transaction.bankName}).</li>
+                      <li>Transfer ke nomor <b>{transaction.accountNumber}</b> a.n. <b>{transaction.accountHolder}</b>.</li>
+                      <li>Masukkan nominal tepat <b>{formatRupiah(transaction.totalAmount)}</b> beserta kode uniknya.</li>
+                      <li>Sistem ArexansPay akan otomatis mendeteksi mutasi dan menerbitkan key Anda!</li>
+                    </>
+                  ) : (
+                    <>
+                      <li>Buka m-Banking (BCA, Mandiri, BRI, SeaBank) atau E-Wallet (DANA, Gopay, OVO, ShopeePay).</li>
+                      <li>Pilih menu <b>Scan QR / QRIS</b> lalu scan barcode di atas atau simpan tangkapan layar.</li>
+                      <li>Pastikan nominal transfer sama persis hingga digit terakhir.</li>
+                      <li>Setelah transfer berhasil, halaman ini akan otomatis membuka Key & Loadstring Anda!</li>
+                    </>
+                  )}
                 </ol>
               </div>
 
@@ -616,3 +801,4 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     </div>
   );
 };
+

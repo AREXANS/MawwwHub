@@ -27,9 +27,30 @@ import {
   Cpu,
   Info,
   Upload,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Tv,
+  Video,
+  Smartphone,
+  Building2,
+  QrCode,
+  Megaphone,
+  Radio,
+  Play,
+  Sparkles,
+  HelpCircle,
+  Layout,
+  ListPlus
 } from 'lucide-react';
-import { FullAdminSettings, ScriptPackage, IssuedKey, Transaction, AdminStats } from '../types';
+import {
+  FullAdminSettings,
+  ScriptPackage,
+  IssuedKey,
+  Transaction,
+  AdminStats,
+  PaymentMethodConfig,
+  AdBannerConfig,
+  HeroPillConfig
+} from '../types';
 
 interface DevDashboardProps {
   onBackToHome: () => void;
@@ -45,8 +66,8 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
   const [loginError, setLoginError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  // Tabs: 'stats', 'packages', 'script', 'loadstring', 'arexanspay', 'keys', 'transactions'
-  const [activeTab, setActiveTab] = useState<'stats' | 'packages' | 'script' | 'loadstring' | 'arexanspay' | 'keys' | 'transactions'>('stats');
+  // Tabs: 'stats', 'packages', 'ads', 'arexanspay', 'keys', 'script', 'loadstring'
+  const [activeTab, setActiveTab] = useState<'stats' | 'packages' | 'ads' | 'arexanspay' | 'keys' | 'script' | 'loadstring'>('stats');
 
   // Data states
   const [settings, setSettings] = useState<FullAdminSettings | null>(null);
@@ -123,6 +144,158 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
     setSettings({ ...settings, logoUrl: '' });
     setLogoUploadMsg('Logo custom dihapus. Icon default akan digunakan.');
     setTimeout(() => setLogoUploadMsg(''), 4000);
+  };
+
+  // Payment Method Modal State
+  const [editingMethod, setEditingMethod] = useState<PaymentMethodConfig | null>(null);
+  const [isMethodModalOpen, setIsMethodModalOpen] = useState(false);
+  const [adminMethodFilter, setAdminMethodFilter] = useState<'all' | 'qris' | 'ewallet' | 'bank'>('all');
+  const [methodFormData, setMethodFormData] = useState<Partial<PaymentMethodConfig>>({
+    id: '',
+    name: '',
+    code: '',
+    category: 'ewallet',
+    accountNumber: '',
+    accountHolder: '',
+    instructions: '',
+    isActive: true,
+    isDefault: false
+  });
+
+  const handleSavePaymentMethod = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!settings) return;
+    const currentMethods = settings.paymentMethods || [];
+
+    if (editingMethod) {
+      const updated = currentMethods.map(m => m.id === editingMethod.id ? { ...m, ...methodFormData } as PaymentMethodConfig : m);
+      setSettings({ ...settings, paymentMethods: updated });
+    } else {
+      const cleanCode = (methodFormData.code || methodFormData.id || 'method').toLowerCase().replace(/[^a-z0-9_]/g, '');
+      const newMethod: PaymentMethodConfig = {
+        id: methodFormData.id || cleanCode || `m-${Date.now().toString(36)}`,
+        name: methodFormData.name || 'Metode Pembayaran',
+        code: cleanCode || 'qris',
+        category: (methodFormData.category as any) || 'ewallet',
+        accountNumber: methodFormData.accountNumber || '',
+        accountHolder: methodFormData.accountHolder || '',
+        instructions: methodFormData.instructions || '',
+        isActive: methodFormData.isActive ?? true,
+        isDefault: !!methodFormData.isDefault
+      };
+      setSettings({ ...settings, paymentMethods: [...currentMethods, newMethod] });
+    }
+
+    setIsMethodModalOpen(false);
+    setEditingMethod(null);
+  };
+
+  const handleDeletePaymentMethod = (methodId: string) => {
+    if (!settings) return;
+    if (confirm("Hapus metode pembayaran ini dari daftar toko?")) {
+      const updated = (settings.paymentMethods || []).filter(m => m.id !== methodId);
+      setSettings({ ...settings, paymentMethods: updated });
+    }
+  };
+
+  const handleToggleMethodActive = (methodId: string) => {
+    if (!settings) return;
+    const updated = (settings.paymentMethods || []).map(m => {
+      if (m.id === methodId) {
+        return { ...m, isActive: !m.isActive };
+      }
+      return m;
+    });
+    setSettings({ ...settings, paymentMethods: updated });
+  };
+
+  const handleSetDefaultMethod = (methodId: string) => {
+    if (!settings) return;
+    const updated = (settings.paymentMethods || []).map(m => {
+      return { ...m, isDefault: m.id === methodId };
+    });
+    setSettings({
+      ...settings,
+      paymentMethods: updated,
+      arexanspay: {
+        ...settings.arexanspay,
+        defaultChannel: methodId
+      }
+    });
+  };
+
+  const handleResetDefaultMethods = () => {
+    if (!settings) return;
+    if (confirm("Reset semua metode pembayaran ke daftar lengkap ArexansPay (QRIS, DANA, GoPay, OVO, ShopeePay, LinkAja, BCA, BRI, Mandiri, BNI, SeaBank, BSI, Permata)?")) {
+      const defaultMethods: PaymentMethodConfig[] = [
+        { id: 'qris', name: 'QRIS All Payment (GPN)', code: 'qris', category: 'qris', instructions: 'Scan QRIS dengan GoPay, OVO, DANA, ShopeePay, LinkAja, BCA, Mandiri, BRI, BNI atau aplikasi m-Banking manapun.', isActive: true, isDefault: true },
+        { id: 'dana', name: 'DANA Instant', code: 'dana', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', instructions: 'Transfer ke nomor akun DANA di atas. Masukkan nominal tepat beserta kode unik agar otomatis terkonfirmasi.', isActive: true },
+        { id: 'gopay', name: 'GoPay / Gojek', code: 'gopay', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', instructions: 'Transfer saldo GoPay ke nomor di atas. Pembayaran terverifikasi otomatis.', isActive: true },
+        { id: 'ovo', name: 'OVO Cash', code: 'ovo', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', instructions: 'Buka aplikasi OVO dan transfer ke nomor di atas sesuai total pembayaran.', isActive: true },
+        { id: 'shopeepay', name: 'ShopeePay', code: 'shopeepay', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', instructions: 'Transfer ShopeePay ke nomor di atas dengan nominal yang tepat.', isActive: true },
+        { id: 'linkaja', name: 'LinkAja', code: 'linkaja', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', instructions: 'Transfer via aplikasi LinkAja ke nomor tertera.', isActive: false },
+        { id: 'bank_bca', name: 'Bank Central Asia (BCA)', code: 'bca', category: 'bank', accountNumber: '8735091823', accountHolder: 'MawwwHub Store', instructions: 'Transfer via m-BCA atau KlikBCA. Wajib transfer sesuai nominal hingga 3 digit kode unik.', isActive: true },
+        { id: 'bank_bri', name: 'Bank Rakyat Indonesia (BRI)', code: 'bri', category: 'bank', accountNumber: '012901092839501', accountHolder: 'MawwwHub Store', instructions: 'Transfer via BRImo atau ATM BRI dengan nominal pas termasuk kode unik.', isActive: true },
+        { id: 'bank_mandiri', name: 'Bank Mandiri (Livin)', code: 'mandiri', category: 'bank', accountNumber: '1370019284950', accountHolder: 'MawwwHub Store', instructions: 'Transfer via Livin by Mandiri. Transfer tepat sesuai kode unik.', isActive: true },
+        { id: 'bank_bni', name: 'Bank Negara Indonesia (BNI)', code: 'bni', category: 'bank', accountNumber: '0981726481', accountHolder: 'MawwwHub Store', instructions: 'Transfer via BNI Mobile Banking dengan nominal tepat.', isActive: true },
+        { id: 'bank_seabank', name: 'SeaBank (Transfer Gratis)', code: 'seabank', category: 'bank', accountNumber: '901928475829', accountHolder: 'MawwwHub Store', instructions: 'Bebas biaya admin transfer dari e-wallet/bank lain ke rekening SeaBank ini.', isActive: true },
+        { id: 'bank_bsi', name: 'Bank Syariah Indonesia (BSI)', code: 'bsi', category: 'bank', accountNumber: '7192837495', accountHolder: 'MawwwHub Store', instructions: 'Transfer via BSI Mobile. Transfer nominal tepat untuk aktivasi instan.', isActive: true },
+        { id: 'bank_permata', name: 'Bank Permata', code: 'permata', category: 'bank', accountNumber: '49281729384', accountHolder: 'MawwwHub Store', instructions: 'Transfer via PermataMobile X atau ATM Permata.', isActive: false }
+      ];
+      setSettings({
+        ...settings,
+        paymentMethods: defaultMethods
+      });
+      alert("Metode pembayaran telah di-reset ke standar ArexansPay. Klik 'Simpan Gateway' untuk menyimpan perubahan permanen.");
+    }
+  };
+
+  // Ads / Promotional Banner Upload helper
+  const [adImageUploadMsg, setAdImageUploadMsg] = useState('');
+  const handleAdImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !settings) return;
+    if (file.size > 8 * 1024 * 1024) {
+      alert("Ukuran gambar maksimal 8MB!");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string;
+      if (base64) {
+        setSettings({
+          ...settings,
+          adBanner: {
+            ...(settings.adBanner || {
+              enabled: true,
+              type: 'image',
+              mediaUrl: '',
+              position: 'middle'
+            }),
+            type: 'image',
+            mediaUrl: base64
+          }
+        });
+        setAdImageUploadMsg(`File "${file.name}" berhasil dimuat!`);
+        setTimeout(() => setAdImageUploadMsg(''), 4000);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Feature Points helper
+  const [newFeatureText, setNewFeatureText] = useState('');
+  const handleAddFeature = () => {
+    if (!settings || !newFeatureText.trim()) return;
+    const current = settings.scriptFeatures || [];
+    setSettings({ ...settings, scriptFeatures: [...current, newFeatureText.trim()] });
+    setNewFeatureText('');
+  };
+  const handleRemoveFeature = (idx: number) => {
+    if (!settings) return;
+    const current = [...(settings.scriptFeatures || [])];
+    current.splice(idx, 1);
+    setSettings({ ...settings, scriptFeatures: current });
   };
 
   // Check login on mount
@@ -602,15 +775,15 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
           </button>
 
           <button
-            onClick={() => setActiveTab('loadstring')}
+            onClick={() => setActiveTab('ads')}
             className={`px-3.5 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition ${
-              activeTab === 'loadstring'
+              activeTab === 'ads'
                 ? 'bg-purple-600 text-white shadow-md shadow-purple-900/50'
                 : 'bg-purple-950/30 text-purple-300/70 hover:bg-purple-900/40'
             }`}
           >
-            <FileCode className="w-3.5 h-3.5" />
-            <span>Loadstring & Kode Mentah Lua</span>
+            <Megaphone className="w-3.5 h-3.5 text-amber-300" />
+            <span>Iklan & Banner Media</span>
           </button>
 
           <button
@@ -621,8 +794,32 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
                 : 'bg-purple-950/30 text-purple-300/70 hover:bg-purple-900/40'
             }`}
           >
-            <CreditCard className="w-3.5 h-3.5" />
-            <span>ArexansPay Gateway</span>
+            <CreditCard className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Gateway & Metode Pembayaran</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('script')}
+            className={`px-3.5 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition ${
+              activeTab === 'script'
+                ? 'bg-purple-600 text-white shadow-md shadow-purple-900/50'
+                : 'bg-purple-950/30 text-purple-300/70 hover:bg-purple-900/40'
+            }`}
+          >
+            <Layout className="w-3.5 h-3.5 text-purple-400" />
+            <span>Editor Beranda & Konten</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('loadstring')}
+            className={`px-3.5 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition ${
+              activeTab === 'loadstring'
+                ? 'bg-purple-600 text-white shadow-md shadow-purple-900/50'
+                : 'bg-purple-950/30 text-purple-300/70 hover:bg-purple-900/40'
+            }`}
+          >
+            <FileCode className="w-3.5 h-3.5" />
+            <span>Loadstring Proteksi & Lua</span>
           </button>
 
           <button
@@ -635,18 +832,6 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
           >
             <Key className="w-3.5 h-3.5" />
             <span>Integrasi Key Durasi</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('script')}
-            className={`px-3.5 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition ${
-              activeTab === 'script'
-                ? 'bg-purple-600 text-white shadow-md shadow-purple-900/50'
-                : 'bg-purple-950/30 text-purple-300/70 hover:bg-purple-900/40'
-            }`}
-          >
-            <Settings className="w-3.5 h-3.5" />
-            <span>Pengaturan Umum & Deskripsi</span>
           </button>
         </div>
 
@@ -985,6 +1170,335 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
           </div>
         )}
 
+        {/* TAB: IKLAN & BANNER MEDIA PROMO (ADS) */}
+        {activeTab === 'ads' && settings && (
+          <div className="space-y-6">
+            <div className="rounded-2xl bg-[#120726] border border-purple-900/60 p-6 shadow-xl space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-base font-bold text-white flex items-center gap-2">
+                    <Megaphone className="w-4 h-4 text-amber-300" />
+                    <span>Manajemen Iklan Banner & Video Beranda</span>
+                  </h3>
+                  <p className="text-xs text-purple-300/70">
+                    Pasang materi iklan promo, banner gambar, direct MP4 video, atau showcase YouTube di halaman depan toko.
+                  </p>
+                </div>
+                <button
+                  onClick={handleSaveSettings}
+                  className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-1.5 self-start sm:self-auto"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  <span>Simpan Pengaturan Iklan</span>
+                </button>
+              </div>
+
+              {/* Master Switch */}
+              <div className="p-4 rounded-xl bg-purple-950/40 border border-purple-800/60 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${settings.adBanner?.enabled ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-purple-900/30 text-purple-400 border border-purple-800'}`}>
+                    <Radio className={`w-5 h-5 ${settings.adBanner?.enabled ? 'animate-pulse' : ''}`} />
+                  </div>
+                  <div>
+                    <span className="text-sm font-bold text-white block">Status Banner Iklan di Beranda</span>
+                    <span className="text-xs text-purple-300/70">
+                      {settings.adBanner?.enabled ? '🟢 Sedang Aktif & Tampil ke Pengunjung' : '⚪ Dinonaktifkan (Disembunyikan)'}
+                    </span>
+                  </div>
+                </div>
+
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={!!settings.adBanner?.enabled}
+                    onChange={(e) => setSettings({
+                      ...settings,
+                      adBanner: {
+                        ...(settings.adBanner || {
+                          type: 'image',
+                          mediaUrl: '',
+                          position: 'middle'
+                        }),
+                        enabled: e.target.checked
+                      }
+                    })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-12 h-6 bg-purple-950 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-purple-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-purple-600 peer-checked:to-amber-500"></div>
+                </label>
+              </div>
+
+              {/* Ad Configuration Form */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                
+                {/* Media Type */}
+                <div>
+                  <label className="block text-purple-200 font-semibold mb-1.5 flex items-center gap-1.5">
+                    <Tv className="w-3.5 h-3.5 text-purple-400" />
+                    <span>Tipe Media Iklan</span>
+                  </label>
+                  <select
+                    value={settings.adBanner?.type || 'image'}
+                    onChange={(e) => setSettings({
+                      ...settings,
+                      adBanner: {
+                        ...(settings.adBanner || { enabled: true, mediaUrl: '', position: 'middle' }),
+                        type: e.target.value as any
+                      }
+                    })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#080214] border border-purple-800 text-white font-medium"
+                  >
+                    <option value="image">🖼️ Gambar / Banner (JPG, PNG, WebP, GIF)</option>
+                    <option value="video">🎬 Video Langsung (MP4 / WebM Autoplay Loop)</option>
+                    <option value="youtube">▶️ YouTube Video Showcase (Embed)</option>
+                  </select>
+                </div>
+
+                {/* Banner Position */}
+                <div>
+                  <label className="block text-purple-200 font-semibold mb-1.5 flex items-center gap-1.5">
+                    <Layout className="w-3.5 h-3.5 text-purple-400" />
+                    <span>Posisi Tampilan di Beranda</span>
+                  </label>
+                  <select
+                    value={settings.adBanner?.position || 'middle'}
+                    onChange={(e) => setSettings({
+                      ...settings,
+                      adBanner: {
+                        ...(settings.adBanner || { enabled: true, type: 'image', mediaUrl: '' }),
+                        position: e.target.value as any
+                      }
+                    })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#080214] border border-purple-800 text-white font-medium"
+                  >
+                    <option value="top">🔝 Posisi Atas (Tepat di bawah Header Hero)</option>
+                    <option value="middle">🎯 Posisi Tengah (Antara Hero dan Daftar Paket)</option>
+                    <option value="bottom">🔽 Posisi Bawah (Di bawah Daftar Paket)</option>
+                  </select>
+                </div>
+
+                {/* Media URL & Upload */}
+                <div className="md:col-span-2 space-y-2">
+                  <label className="block text-purple-200 font-semibold flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <ImageIcon className="w-3.5 h-3.5 text-purple-400" />
+                      <span>URL File Media (Gambar / Video / YouTube Link)</span>
+                    </span>
+                    <span className="text-[10px] text-purple-400 font-normal">
+                      Mendukung URL https:// atau Upload Langsung
+                    </span>
+                  </label>
+                  
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <input
+                      type="text"
+                      value={settings.adBanner?.mediaUrl || ''}
+                      onChange={(e) => setSettings({
+                        ...settings,
+                        adBanner: {
+                          ...(settings.adBanner || { enabled: true, type: 'image', position: 'middle' }),
+                          mediaUrl: e.target.value
+                        }
+                      })}
+                      placeholder={settings.adBanner?.type === 'youtube' ? 'Contoh: https://www.youtube.com/watch?v=dQw4w9WgXcQ' : 'https://images.unsplash.com/... atau URL file mp4'}
+                      className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#080214] border border-purple-800 text-white font-mono-code text-[11px]"
+                    />
+
+                    {settings.adBanner?.type !== 'youtube' && (
+                      <label className="px-4 py-2.5 rounded-xl bg-purple-900/60 hover:bg-purple-800 border border-purple-700/60 text-purple-200 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition flex-shrink-0">
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>Upload File</span>
+                        <input
+                          type="file"
+                          accept={settings.adBanner?.type === 'video' ? 'video/mp4,video/webm' : 'image/*'}
+                          onChange={handleAdImageUpload}
+                          className="hidden"
+                        />
+                      </label>
+                    )}
+                  </div>
+                  {adImageUploadMsg && (
+                    <span className="text-[11px] text-emerald-400 font-medium block">
+                      ✓ {adImageUploadMsg}
+                    </span>
+                  )}
+                </div>
+
+                {/* Title */}
+                <div>
+                  <label className="block text-purple-200 font-semibold mb-1">
+                    Judul Promo / Headline Banner
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.adBanner?.title || ''}
+                    onChange={(e) => setSettings({
+                      ...settings,
+                      adBanner: {
+                        ...(settings.adBanner || { enabled: true, type: 'image', mediaUrl: '', position: 'middle' }),
+                        title: e.target.value
+                      }
+                    })}
+                    placeholder="Contoh: 🔥 Promo Spesial MawwwHub VIP Script"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#080214] border border-purple-800 text-white"
+                  />
+                </div>
+
+                {/* Badge text */}
+                <div>
+                  <label className="block text-purple-200 font-semibold mb-1">
+                    Label Badge / Tag (Pojok Kiri)
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.adBanner?.badge || ''}
+                    onChange={(e) => setSettings({
+                      ...settings,
+                      adBanner: {
+                        ...(settings.adBanner || { enabled: true, type: 'image', mediaUrl: '', position: 'middle' }),
+                        badge: e.target.value
+                      }
+                    })}
+                    placeholder="Contoh: OFFICIAL UPDATE atau DISKON 50%"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#080214] border border-purple-800 text-white uppercase text-[11px]"
+                  />
+                </div>
+
+                {/* Description */}
+                <div className="md:col-span-2">
+                  <label className="block text-purple-200 font-semibold mb-1">
+                    Deskripsi Singkat Iklan
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={settings.adBanner?.description || ''}
+                    onChange={(e) => setSettings({
+                      ...settings,
+                      adBanner: {
+                        ...(settings.adBanner || { enabled: true, type: 'image', mediaUrl: '', position: 'middle' }),
+                        description: e.target.value
+                      }
+                    })}
+                    placeholder="Jelaskan penawaran atau informasi update yang menarik bagi pengunjung..."
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#080214] border border-purple-800 text-white"
+                  />
+                </div>
+
+                {/* Button text & Target Url */}
+                <div>
+                  <label className="block text-purple-200 font-semibold mb-1">
+                    Teks Tombol Aksi (CTA)
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.adBanner?.buttonText || ''}
+                    onChange={(e) => setSettings({
+                      ...settings,
+                      adBanner: {
+                        ...(settings.adBanner || { enabled: true, type: 'image', mediaUrl: '', position: 'middle' }),
+                        buttonText: e.target.value
+                      }
+                    })}
+                    placeholder="Beli Key Sekarang"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#080214] border border-purple-800 text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-purple-200 font-semibold mb-1">
+                    Link Tujuan Tombol (URL / Anchor)
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.adBanner?.targetUrl || ''}
+                    onChange={(e) => setSettings({
+                      ...settings,
+                      adBanner: {
+                        ...(settings.adBanner || { enabled: true, type: 'image', mediaUrl: '', position: 'middle' }),
+                        targetUrl: e.target.value
+                      }
+                    })}
+                    placeholder="#packages-section atau https://wa.me/..."
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#080214] border border-purple-800 text-white font-mono-code text-[11px]"
+                  />
+                </div>
+
+              </div>
+
+              {/* Live Preview Box */}
+              <div className="pt-4 border-t border-purple-900/40">
+                <span className="text-xs font-bold uppercase tracking-wider text-purple-300 block mb-2">
+                  Preview Tampilan Iklan di Beranda:
+                </span>
+                
+                {settings.adBanner?.mediaUrl ? (
+                  <div className="rounded-2xl border border-purple-600/50 bg-gradient-to-r from-purple-950/70 via-[#160a2c] to-purple-950/70 p-5 overflow-hidden">
+                    <div className="flex flex-col md:flex-row items-center gap-5">
+                      <div className="w-full md:w-1/2 aspect-video max-h-56 bg-black/60 rounded-xl overflow-hidden border border-purple-700 flex items-center justify-center relative">
+                        {settings.adBanner.badge && (
+                          <span className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-full bg-purple-900/90 border border-purple-400/50 text-[9px] font-bold text-purple-200 flex items-center gap-1">
+                            <Sparkles className="w-2.5 h-2.5 text-amber-300" />
+                            <span>{settings.adBanner.badge}</span>
+                          </span>
+                        )}
+
+                        {settings.adBanner.type === 'youtube' ? (
+                          <div className="w-full h-full flex items-center justify-center text-red-400 gap-2 font-mono-code text-xs">
+                            <Play className="w-6 h-6 fill-red-500" />
+                            <span>YouTube Embed Aktif</span>
+                          </div>
+                        ) : settings.adBanner.type === 'video' ? (
+                          <video
+                            src={settings.adBanner.mediaUrl}
+                            controls
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <img
+                            src={settings.adBanner.mediaUrl}
+                            alt="Preview Ad"
+                            className="w-full h-full object-cover"
+                          />
+                        )}
+                      </div>
+
+                      <div className="w-full md:w-1/2 space-y-2 text-left">
+                        {settings.adBanner.badge && (
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400 font-mono-code">
+                            {settings.adBanner.badge}
+                          </span>
+                        )}
+                        <h4 className="text-lg font-black text-white">
+                          {settings.adBanner.title || 'Judul Promo Banner'}
+                        </h4>
+                        <p className="text-xs text-purple-200/80">
+                          {settings.adBanner.description || 'Deskripsi iklan akan tampil di sini.'}
+                        </p>
+                        {settings.adBanner.buttonText && (
+                          <div className="pt-2">
+                            <button
+                              type="button"
+                              className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-bold text-xs flex items-center gap-1.5"
+                            >
+                              <span>{settings.adBanner.buttonText}</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-8 rounded-xl bg-[#090214] border border-dashed border-purple-800 text-center text-purple-400/60 text-xs">
+                    Belum ada gambar atau video iklan. Masukkan URL atau upload file di atas untuk melihat preview.
+                  </div>
+                )}
+              </div>
+
+            </div>
+          </div>
+        )}
+
         {/* TAB 3: LOADSTRING & KODE MENTAH LUA */}
         {activeTab === 'loadstring' && settings && (
           <div className="space-y-6">
@@ -1311,6 +1825,349 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
               </div>
 
             </div>
+
+            {/* SEKSI MANAJEMEN METODE PEMBAYARAN AREXANSPAY (ALL EWALLET & BANK) */}
+            <div className="rounded-2xl bg-[#120726] border border-purple-900/60 p-6 shadow-xl space-y-6">
+              
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-purple-900/40 pb-5">
+                <div>
+                  <h3 className="text-base font-bold text-white flex items-center gap-2">
+                    <Smartphone className="w-4 h-4 text-purple-400" />
+                    <span>Metode Pembayaran Toko (Semua E-Wallet & Bank ArexansPay)</span>
+                  </h3>
+                  <p className="text-xs text-purple-300/70">
+                    Aktifkan atau nonaktifkan pilihan QRIS, E-Wallet (DANA, GoPay, OVO, ShopeePay, LinkAja) dan Rekening Bank (BCA, BRI, Mandiri, BNI, SeaBank, BSI, Permata).
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleResetDefaultMethods}
+                    className="px-3 py-1.5 rounded-lg bg-purple-950 hover:bg-purple-900 text-purple-300 border border-purple-800/50 text-xs font-semibold flex items-center gap-1.5 transition"
+                    title="Kembalikan semua daftar bank & ewallet standar ArexansPay"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Reset ke Standar</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingMethod(null);
+                      setMethodFormData({
+                        id: '',
+                        name: '',
+                        code: '',
+                        category: 'ewallet',
+                        accountNumber: '',
+                        accountHolder: settings.brandName + ' Store',
+                        instructions: '',
+                        isActive: true,
+                        isDefault: false
+                      });
+                      setIsMethodModalOpen(true);
+                    }}
+                    className="px-3.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-md shadow-purple-900/50"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>+ Tambah Metode Pembayaran</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Filter Tabs */}
+              <div className="flex items-center gap-2 text-xs font-semibold">
+                <button
+                  type="button"
+                  onClick={() => setAdminMethodFilter('all')}
+                  className={`px-3 py-1.5 rounded-xl transition ${adminMethodFilter === 'all' ? 'bg-purple-600 text-white' : 'bg-purple-950/40 text-purple-300 hover:bg-purple-900/40'}`}
+                >
+                  Semua ({settings.paymentMethods?.length || 0})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAdminMethodFilter('qris')}
+                  className={`px-3 py-1.5 rounded-xl transition ${adminMethodFilter === 'qris' ? 'bg-purple-600 text-white' : 'bg-purple-950/40 text-purple-300 hover:bg-purple-900/40'}`}
+                >
+                  QRIS ({settings.paymentMethods?.filter(m => m.category === 'qris').length || 0})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAdminMethodFilter('ewallet')}
+                  className={`px-3 py-1.5 rounded-xl transition ${adminMethodFilter === 'ewallet' ? 'bg-purple-600 text-white' : 'bg-purple-950/40 text-purple-300 hover:bg-purple-900/40'}`}
+                >
+                  E-Wallet ({settings.paymentMethods?.filter(m => m.category === 'ewallet').length || 0})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAdminMethodFilter('bank')}
+                  className={`px-3 py-1.5 rounded-xl transition ${adminMethodFilter === 'bank' ? 'bg-purple-600 text-white' : 'bg-purple-950/40 text-purple-300 hover:bg-purple-900/40'}`}
+                >
+                  Bank Transfer & VA ({settings.paymentMethods?.filter(m => m.category === 'bank').length || 0})
+                </button>
+              </div>
+
+              {/* Methods Grid Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                {(settings.paymentMethods || [])
+                  .filter(m => adminMethodFilter === 'all' || m.category === adminMethodFilter)
+                  .map((method) => {
+                    const isQris = method.category === 'qris';
+                    const isEwallet = method.category === 'ewallet';
+                    const isBank = method.category === 'bank';
+
+                    return (
+                      <div
+                        key={method.id}
+                        className={`p-4 rounded-xl border transition flex flex-col justify-between ${
+                          method.isActive
+                            ? 'bg-[#090216] border-purple-800/80 shadow-md'
+                            : 'bg-[#06010f]/60 border-purple-950/50 opacity-60'
+                        }`}
+                      >
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-lg bg-purple-950 border border-purple-800 flex items-center justify-center text-purple-300">
+                                {isQris && <QrCode className="w-4 h-4 text-purple-400" />}
+                                {isEwallet && <Smartphone className="w-4 h-4 text-cyan-400" />}
+                                {isBank && <Building2 className="w-4 h-4 text-amber-400" />}
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-xs text-white leading-tight">{method.name}</h4>
+                                <span className="text-[10px] font-mono-code text-purple-400 uppercase">
+                                  {method.category} • {method.code}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Status Active Switch */}
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={method.isActive}
+                                onChange={() => handleToggleMethodActive(method.id)}
+                                className="sr-only peer"
+                              />
+                              <div className="w-9 h-5 bg-purple-950 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-purple-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+                            </label>
+                          </div>
+
+                          {/* Account details */}
+                          {!isQris && (
+                            <div className="p-2.5 rounded-lg bg-[#0e0420] border border-purple-900/60 text-[11px] space-y-1">
+                              <div className="flex justify-between font-mono-code">
+                                <span className="text-purple-400/80">Nomor:</span>
+                                <span className="font-bold text-cyan-300">{method.accountNumber || '-'}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-purple-400/80">Atas Nama:</span>
+                                <span className="text-purple-200 truncate max-w-[130px] font-medium">{method.accountHolder || '-'}</span>
+                              </div>
+                            </div>
+                          )}
+
+                          {isQris && (
+                            <div className="p-2 rounded-lg bg-[#0e0420] border border-purple-900/60 text-[11px] text-purple-300/80">
+                              Menggunakan Barcode QRIS Statis toko ArexansPay.
+                            </div>
+                          )}
+
+                          {method.instructions && (
+                            <p className="text-[10px] text-purple-400/70 line-clamp-2 italic">
+                              "{method.instructions}"
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Card bottom actions */}
+                        <div className="pt-3 mt-3 border-t border-purple-900/40 flex items-center justify-between text-xs">
+                          {method.isDefault ? (
+                            <span className="text-[10px] font-bold text-amber-300 flex items-center gap-1">
+                              ⭐ Pilihan Utama
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleSetDefaultMethod(method.id)}
+                              className="text-[10px] text-purple-400 hover:text-purple-200 transition"
+                            >
+                              Jadikan Utama
+                            </button>
+                          )}
+
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingMethod(method);
+                                setMethodFormData(method);
+                                setIsMethodModalOpen(true);
+                              }}
+                              className="p-1 rounded bg-purple-950 hover:bg-purple-900 text-purple-300 hover:text-white transition"
+                              title="Edit metode ini"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleDeletePaymentMethod(method.id)}
+                              className="p-1 rounded bg-red-950/60 hover:bg-red-900 text-red-300 hover:text-white transition"
+                              title="Hapus metode ini"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+
+            </div>
+
+            {/* MODAL: TAMBAH / EDIT METODE PEMBAYARAN */}
+            {isMethodModalOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+                <div className="relative w-full max-w-md rounded-2xl bg-[#120726] border border-purple-700/80 p-6 shadow-2xl text-white">
+                  <h3 className="text-base font-bold mb-4 flex items-center gap-2">
+                    <Smartphone className="w-4 h-4 text-purple-400" />
+                    <span>{editingMethod ? 'Edit Metode Pembayaran' : 'Tambah Metode Pembayaran Baru'}</span>
+                  </h3>
+
+                  <form onSubmit={handleSavePaymentMethod} className="space-y-3.5 text-xs">
+                    <div>
+                      <label className="block text-purple-200 font-semibold mb-1">
+                        Nama Tampilan Metode <span className="text-red-400">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={methodFormData.name || ''}
+                        onChange={(e) => setMethodFormData({ ...methodFormData, name: e.target.value })}
+                        placeholder="Contoh: DANA Instant, SeaBank, BCA Mobile"
+                        className="w-full px-3.5 py-2 rounded-xl bg-[#080214] border border-purple-800 text-white"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-purple-200 font-semibold mb-1">
+                          Kategori Saluran
+                        </label>
+                        <select
+                          value={methodFormData.category || 'ewallet'}
+                          onChange={(e) => setMethodFormData({ ...methodFormData, category: e.target.value as any })}
+                          className="w-full px-3 py-2 rounded-xl bg-[#080214] border border-purple-800 text-white font-medium"
+                        >
+                          <option value="qris">QRIS Standar</option>
+                          <option value="ewallet">E-Wallet (Dompet Digital)</option>
+                          <option value="bank">Bank Transfer / Virtual Account</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-purple-200 font-semibold mb-1">
+                          Kode Sistem (ID)
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={methodFormData.code || ''}
+                          onChange={(e) => setMethodFormData({ ...methodFormData, code: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') })}
+                          placeholder="dana / bca / gopay"
+                          className="w-full px-3 py-2 rounded-xl bg-[#080214] border border-purple-800 text-white font-mono-code"
+                        />
+                      </div>
+                    </div>
+
+                    {methodFormData.category !== 'qris' && (
+                      <>
+                        <div>
+                          <label className="block text-purple-200 font-semibold mb-1">
+                            Nomor Rekening / No. HP E-Wallet <span className="text-red-400">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={methodFormData.accountNumber || ''}
+                            onChange={(e) => setMethodFormData({ ...methodFormData, accountNumber: e.target.value })}
+                            placeholder="Contoh: 081234567890 atau 8735091823"
+                            className="w-full px-3.5 py-2 rounded-xl bg-[#080214] border border-purple-800 text-white font-mono-code"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-purple-200 font-semibold mb-1">
+                            Nama Pemilik Akun (Atas Nama)
+                          </label>
+                          <input
+                            type="text"
+                            value={methodFormData.accountHolder || ''}
+                            onChange={(e) => setMethodFormData({ ...methodFormData, accountHolder: e.target.value })}
+                            placeholder="Contoh: MawwwHub Store / Nama Anda"
+                            className="w-full px-3.5 py-2 rounded-xl bg-[#080214] border border-purple-800 text-white"
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    <div>
+                      <label className="block text-purple-200 font-semibold mb-1">
+                        Petunjuk Transfer untuk Pembeli
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={methodFormData.instructions || ''}
+                        onChange={(e) => setMethodFormData({ ...methodFormData, instructions: e.target.value })}
+                        placeholder="Transfer ke rekening di atas dengan nominal pas sesuai kode unik..."
+                        className="w-full px-3.5 py-2 rounded-xl bg-[#080214] border border-purple-800 text-white text-[11px]"
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-6 pt-2">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={methodFormData.isActive ?? true}
+                          onChange={(e) => setMethodFormData({ ...methodFormData, isActive: e.target.checked })}
+                          className="rounded text-purple-600"
+                        />
+                        <span>Aktifkan Metode Ini</span>
+                      </label>
+
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={!!methodFormData.isDefault}
+                          onChange={(e) => setMethodFormData({ ...methodFormData, isDefault: e.target.checked })}
+                          className="rounded text-purple-600"
+                        />
+                        <span>Jadikan Default</span>
+                      </label>
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-4 border-t border-purple-900/40">
+                      <button
+                        type="button"
+                        onClick={() => setIsMethodModalOpen(false)}
+                        className="px-4 py-2 rounded-xl bg-purple-950 hover:bg-purple-900 text-purple-300"
+                      >
+                        Batal
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 font-bold text-white shadow-md shadow-purple-900/40"
+                      >
+                        Simpan Metode
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
 
           </div>
         )}
@@ -1813,6 +2670,261 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
                   onChange={(e) => setSettings({ ...settings, whatsappContact: e.target.value })}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-[#080214] border border-purple-800 text-white"
                 />
+              </div>
+
+              <div>
+                <label className="block text-purple-200 font-semibold mb-1">Link Telegram Channel</label>
+                <input
+                  type="text"
+                  value={settings.telegramUrl || ''}
+                  onChange={(e) => setSettings({ ...settings, telegramUrl: e.target.value })}
+                  placeholder="https://t.me/mawwwhub"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#080214] border border-purple-800 text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-purple-200 font-semibold mb-1">Teks Hak Cipta / Footer</label>
+                <input
+                  type="text"
+                  value={settings.footerText || ''}
+                  onChange={(e) => setSettings({ ...settings, footerText: e.target.value })}
+                  placeholder="Powered by ArexansPay Multi-Bank & QRIS Automation"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#080214] border border-purple-800 text-white"
+                />
+              </div>
+            </div>
+
+            {/* STATUS BADGE BAR EDITOR */}
+            <div className="p-5 rounded-2xl bg-[#090216] border border-purple-800/70 space-y-4">
+              <div>
+                <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-purple-400" />
+                  <span>Pill / Badge Status Server di Beranda</span>
+                </h4>
+                <p className="text-xs text-purple-300/70">
+                  Label status yang muncul di paling atas hero (contoh: status undetect script dan integrasi payment).
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                <div>
+                  <label className="block text-purple-200 font-semibold mb-1">Teks Utama Status</label>
+                  <input
+                    type="text"
+                    value={settings.statusBadgeText || ''}
+                    onChange={(e) => setSettings({ ...settings, statusBadgeText: e.target.value })}
+                    placeholder="MawwwHub Status: Undetected & Online"
+                    className="w-full px-3 py-2 rounded-xl bg-[#06010e] border border-purple-800 text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-purple-200 font-semibold mb-1">Warna Lampu Indikator</label>
+                  <select
+                    value={settings.statusBadgeType || 'online'}
+                    onChange={(e) => setSettings({ ...settings, statusBadgeType: e.target.value as any })}
+                    className="w-full px-3 py-2 rounded-xl bg-[#06010e] border border-purple-800 text-white"
+                  >
+                    <option value="online">🟢 Hijau (Online & Undetected)</option>
+                    <option value="updating">🟡 Kuning (Sedang Update / Roblox Maintenance)</option>
+                    <option value="maintenance">🔴 Merah (Maintenance Sistem)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-purple-200 font-semibold mb-1">Teks Keterangan Sub</label>
+                  <input
+                    type="text"
+                    value={settings.statusSubtext || ''}
+                    onChange={(e) => setSettings({ ...settings, statusSubtext: e.target.value })}
+                    placeholder="ArexansPay Multi-Payment Aktif"
+                    className="w-full px-3 py-2 rounded-xl bg-[#06010e] border border-purple-800 text-white"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* SCRIPT FEATURES LIST EDITOR */}
+            <div className="p-5 rounded-2xl bg-[#090216] border border-purple-800/70 space-y-4">
+              <div>
+                <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                  <ListPlus className="w-4 h-4 text-purple-400" />
+                  <span>Daftar Poin Fitur Unggulan Script</span>
+                </h4>
+                <p className="text-xs text-purple-300/70">
+                  Daftar fitur ini tampil di kotak keterangan di atas tabel paket. Anda bisa menambah atau menghapus poin fitur.
+                </p>
+              </div>
+
+              {/* Add New Feature */}
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={newFeatureText}
+                  onChange={(e) => setNewFeatureText(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddFeature())}
+                  placeholder="Ketik poin fitur baru (misal: ⚡ Auto Raid & Fast Dungeon)..."
+                  className="flex-1 px-3.5 py-2 rounded-xl bg-[#06010e] border border-purple-800 text-xs text-white"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddFeature}
+                  className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-1 transition"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Tambah</span>
+                </button>
+              </div>
+
+              {/* Feature Items List */}
+              <div className="space-y-2 max-h-56 overflow-y-auto custom-scrollbar pr-1">
+                {(settings.scriptFeatures || []).map((feat, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-[#0e0420] border border-purple-900/60 text-xs text-purple-200"
+                  >
+                    <span className="flex-1 mr-2">{feat}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveFeature(idx)}
+                      className="p-1 rounded bg-red-950/60 hover:bg-red-900 text-red-300 transition"
+                      title="Hapus fitur ini"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* HERO BENEFIT PILLS EDITOR */}
+            <div className="p-5 rounded-2xl bg-[#090216] border border-purple-800/70 space-y-4">
+              <div>
+                <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Layout className="w-4 h-4 text-purple-400" />
+                  <span>Kartu Highlight Keunggulan Hero (4 Kotak Bawah)</span>
+                </h4>
+                <p className="text-xs text-purple-300/70">
+                  Ubah judul, icon, dan deskripsi pada 4 kartu highlight di bagian bawah hero.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                {(settings.heroPills || [
+                  { id: 'pill-1', icon: 'zap', title: 'Instan Delivery', description: 'Key & loadstring langsung terbit hitungan detik setelah bayar.' },
+                  { id: 'pill-2', icon: 'shield', title: 'Bypass Anti-Cheat', description: 'Perlindungan keamanan tinggi aman dari ban Roblox.' },
+                  { id: 'pill-3', icon: 'check', title: 'Multi-Payment Otomatis', description: 'Mendukung QRIS, DANA, GoPay, OVO, BCA, BRI, Mandiri, SeaBank.' },
+                  { id: 'pill-4', icon: 'sparkles', title: 'Universal Support', description: 'Lancar untuk Delta, Codex, Arceus X, Solara & Wave.' }
+                ]).map((pill, pIdx) => (
+                  <div key={pill.id || pIdx} className="p-3.5 rounded-xl bg-[#0e0420] border border-purple-900/60 space-y-2 text-xs">
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={pill.icon}
+                        onChange={(e) => {
+                          const updated = [...(settings.heroPills || [])];
+                          if (updated[pIdx]) {
+                            updated[pIdx].icon = e.target.value as any;
+                            setSettings({ ...settings, heroPills: updated });
+                          }
+                        }}
+                        className="px-2 py-1 rounded bg-[#06010e] border border-purple-800 text-purple-300 text-[11px]"
+                      >
+                        <option value="zap">⚡ Zap</option>
+                        <option value="shield">🛡️ Shield</option>
+                        <option value="check">✓ Check</option>
+                        <option value="sparkles">✨ Sparkles</option>
+                      </select>
+
+                      <input
+                        type="text"
+                        value={pill.title}
+                        onChange={(e) => {
+                          const updated = [...(settings.heroPills || [])];
+                          if (updated[pIdx]) {
+                            updated[pIdx].title = e.target.value;
+                            setSettings({ ...settings, heroPills: updated });
+                          }
+                        }}
+                        placeholder="Judul Keunggulan"
+                        className="flex-1 px-2.5 py-1 rounded-lg bg-[#06010e] border border-purple-800 text-white font-bold"
+                      />
+                    </div>
+
+                    <textarea
+                      rows={2}
+                      value={pill.description}
+                      onChange={(e) => {
+                        const updated = [...(settings.heroPills || [])];
+                        if (updated[pIdx]) {
+                          updated[pIdx].description = e.target.value;
+                          setSettings({ ...settings, heroPills: updated });
+                        }
+                      }}
+                      placeholder="Deskripsi singkat..."
+                      className="w-full px-2.5 py-1.5 rounded-lg bg-[#06010e] border border-purple-800 text-purple-200 text-[11px]"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* QUICK TOOLS BANNER EDITOR */}
+            <div className="p-5 rounded-2xl bg-[#090216] border border-purple-800/70 space-y-4">
+              <div>
+                <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                  <HelpCircle className="w-4 h-4 text-purple-400" />
+                  <span>Banner Quick Tools (Box Bantuan Bawah Beranda)</span>
+                </h4>
+                <p className="text-xs text-purple-300/70">
+                  Kotak interaktif di bawah katalog yang memuat tombol Cek Validasi Key dan Tutorial Executor.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <label className="block text-purple-200 font-semibold mb-1">Judul Quick Tools</label>
+                  <input
+                    type="text"
+                    value={settings.quickToolsTitle || ''}
+                    onChange={(e) => setSettings({ ...settings, quickToolsTitle: e.target.value })}
+                    placeholder="Sudah Punya Key MawwwHub?"
+                    className="w-full px-3 py-2 rounded-xl bg-[#06010e] border border-purple-800 text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-purple-200 font-semibold mb-1">Deskripsi Box</label>
+                  <input
+                    type="text"
+                    value={settings.quickToolsDesc || ''}
+                    onChange={(e) => setSettings({ ...settings, quickToolsDesc: e.target.value })}
+                    placeholder="Cek sisa masa aktif key Anda atau pelajari cara eksekusi script di HP Android dan PC."
+                    className="w-full px-3 py-2 rounded-xl bg-[#06010e] border border-purple-800 text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-purple-200 font-semibold mb-1">Teks Tombol 1 (Cek Key)</label>
+                  <input
+                    type="text"
+                    value={settings.quickToolsBtn1Text || ''}
+                    onChange={(e) => setSettings({ ...settings, quickToolsBtn1Text: e.target.value })}
+                    placeholder="Cek Validasi Key"
+                    className="w-full px-3 py-2 rounded-xl bg-[#06010e] border border-purple-800 text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-purple-200 font-semibold mb-1">Teks Tombol 2 (Tutorial)</label>
+                  <input
+                    type="text"
+                    value={settings.quickToolsBtn2Text || ''}
+                    onChange={(e) => setSettings({ ...settings, quickToolsBtn2Text: e.target.value })}
+                    placeholder="Tutorial Executor"
+                    className="w-full px-3 py-2 rounded-xl bg-[#06010e] border border-purple-800 text-white"
+                  />
+                </div>
               </div>
             </div>
 

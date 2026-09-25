@@ -19,7 +19,183 @@
     "telegramUrl": "https://t.me/mawwwhub",
     "whatsappContact": "https://wa.me/6281234567890",
     "announcementText": "🔥 PROMO LAUNCHING: Dapatkan diskon 30% untuk semua paket durasi script MawwwHub hari ini!",
-    "loadstringTemplate": "_G.MawwwHubKey = \"{KEY}\"\nlocal p = game:GetService(\"Players\").LocalPlayer\nlocal h = (gethwid and gethwid()) or (getgenv and getgenv().gethwid and getgenv().gethwid()) or (identifyexecutor and identifyexecutor() .. \"_\" .. game:GetService(\"RbxAnalyticsService\"):GetClientId()) or tostring(p.UserId)\nloadstring(game:HttpGet(\"{API_BASE}/api/raw/mawwwhub?key=\" .. _G.MawwwHubKey .. \"&player=\" .. p.Name .. \"&hwid=\" .. h))()",
+    "statusBadgeText": "MawwwHub Status: Undetected & Online",
+    "statusBadgeType": "online",
+    "statusSubtext": "ArexansPay Multi-Payment Aktif",
+    "quickToolsTitle": "Sudah Punya Key MawwwHub?",
+    "quickToolsDesc": "Cek sisa masa aktif key Anda atau pelajari cara eksekusi script di HP Android dan PC.",
+    "quickToolsBtn1Text": "Cek Validasi Key",
+    "quickToolsBtn2Text": "Tutorial Executor",
+    "footerText": "Powered by ArexansPay Multi-Bank & QRIS Automation",
+    "heroPills": [
+      {
+        "id": "pill-1",
+        "icon": "zap",
+        "title": "Instan Delivery",
+        "description": "Key & loadstring langsung terbit hitungan detik setelah bayar."
+      },
+      {
+        "id": "pill-2",
+        "icon": "shield",
+        "title": "Bypass Anti-Cheat",
+        "description": "Perlindungan keamanan tinggi aman dari ban Roblox."
+      },
+      {
+        "id": "pill-3",
+        "icon": "check",
+        "title": "Multi-Payment Otomatis",
+        "description": "Mendukung QRIS, DANA, GoPay, OVO, BCA, BRI, Mandiri, SeaBank."
+      },
+      {
+        "id": "pill-4",
+        "icon": "sparkles",
+        "title": "Universal Support",
+        "description": "Lancar untuk Delta, Codex, Arceus X, Solara & Wave."
+      }
+    ],
+    "adBanner": {
+      "enabled": false,
+      "type": "image",
+      "mediaUrl": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80",
+      "title": "🔥 Promo Spesial MawwwHub VIP Script",
+      "badge": "OFFICIAL UPDATE",
+      "description": "Dapatkan akses eksklusif auto-farm dan fitur premium dengan diskon terbatas!",
+      "targetUrl": "#packages-section",
+      "buttonText": "Beli Key Sekarang",
+      "position": "middle"
+    },
+    "paymentMethods": [
+      {
+        "id": "qris",
+        "name": "QRIS All Payment (GPN)",
+        "code": "qris",
+        "category": "qris",
+        "instructions": "Scan QRIS dengan GoPay, OVO, DANA, ShopeePay, LinkAja, BCA, Mandiri, BRI, BNI atau aplikasi m-Banking manapun.",
+        "isActive": true,
+        "isDefault": true
+      },
+      {
+        "id": "dana",
+        "name": "DANA Instant",
+        "code": "dana",
+        "category": "ewallet",
+        "accountNumber": "081234567890",
+        "accountHolder": "MawwwHub Store",
+        "instructions": "Transfer ke nomor akun DANA di atas. Masukkan nominal tepat beserta kode unik agar otomatis terkonfirmasi.",
+        "isActive": true
+      },
+      {
+        "id": "gopay",
+        "name": "GoPay / Gojek",
+        "code": "gopay",
+        "category": "ewallet",
+        "accountNumber": "081234567890",
+        "accountHolder": "MawwwHub Store",
+        "instructions": "Transfer saldo GoPay ke nomor di atas. Pembayaran terverifikasi otomatis.",
+        "isActive": true
+      },
+      {
+        "id": "ovo",
+        "name": "OVO Cash",
+        "code": "ovo",
+        "category": "ewallet",
+        "accountNumber": "081234567890",
+        "accountHolder": "MawwwHub Store",
+        "instructions": "Buka aplikasi OVO dan transfer ke nomor di atas sesuai total pembayaran.",
+        "isActive": true
+      },
+      {
+        "id": "shopeepay",
+        "name": "ShopeePay",
+        "code": "shopeepay",
+        "category": "ewallet",
+        "accountNumber": "081234567890",
+        "accountHolder": "MawwwHub Store",
+        "instructions": "Transfer ShopeePay ke nomor di atas dengan nominal yang tepat.",
+        "isActive": true
+      },
+      {
+        "id": "linkaja",
+        "name": "LinkAja",
+        "code": "linkaja",
+        "category": "ewallet",
+        "accountNumber": "081234567890",
+        "accountHolder": "MawwwHub Store",
+        "instructions": "Transfer via aplikasi LinkAja ke nomor tertera.",
+        "isActive": false
+      },
+      {
+        "id": "bank_bca",
+        "name": "Bank Central Asia (BCA)",
+        "code": "bca",
+        "category": "bank",
+        "accountNumber": "8735091823",
+        "accountHolder": "MawwwHub Store",
+        "instructions": "Transfer via m-BCA atau KlikBCA. Wajib transfer sesuai nominal hingga 3 digit kode unik.",
+        "isActive": true
+      },
+      {
+        "id": "bank_bri",
+        "name": "Bank Rakyat Indonesia (BRI)",
+        "code": "bri",
+        "category": "bank",
+        "accountNumber": "012901092839501",
+        "accountHolder": "MawwwHub Store",
+        "instructions": "Transfer via BRImo atau ATM BRI dengan nominal pas termasuk kode unik.",
+        "isActive": true
+      },
+      {
+        "id": "bank_mandiri",
+        "name": "Bank Mandiri (Livin)",
+        "code": "mandiri",
+        "category": "bank",
+        "accountNumber": "1370019284950",
+        "accountHolder": "MawwwHub Store",
+        "instructions": "Transfer via Livin by Mandiri. Transfer tepat sesuai kode unik.",
+        "isActive": true
+      },
+      {
+        "id": "bank_bni",
+        "name": "Bank Negara Indonesia (BNI)",
+        "code": "bni",
+        "category": "bank",
+        "accountNumber": "0981726481",
+        "accountHolder": "MawwwHub Store",
+        "instructions": "Transfer via BNI Mobile Banking dengan nominal tepat.",
+        "isActive": true
+      },
+      {
+        "id": "bank_seabank",
+        "name": "SeaBank (Transfer Gratis)",
+        "code": "seabank",
+        "category": "bank",
+        "accountNumber": "901928475829",
+        "accountHolder": "MawwwHub Store",
+        "instructions": "Bebas biaya admin transfer dari e-wallet/bank lain ke rekening SeaBank ini.",
+        "isActive": true
+      },
+      {
+        "id": "bank_bsi",
+        "name": "Bank Syariah Indonesia (BSI)",
+        "code": "bsi",
+        "category": "bank",
+        "accountNumber": "7192837495",
+        "accountHolder": "MawwwHub Store",
+        "instructions": "Transfer via BSI Mobile. Transfer nominal tepat untuk aktivasi instan.",
+        "isActive": true
+      },
+      {
+        "id": "bank_permata",
+        "name": "Bank Permata",
+        "code": "permata",
+        "category": "bank",
+        "accountNumber": "49281729384",
+        "accountHolder": "MawwwHub Store",
+        "instructions": "Transfer via PermataMobile X atau ATM Permata.",
+        "isActive": false
+      }
+    ],
+    "loadstringTemplate": "_G.MawwwHubKey = \"{KEY}\"\nloadstring(game:HttpGet(\"{API_BASE}/api/raw/mawwwhub?key=\" .. _G.MawwwHubKey))()",
     "rawScriptBody": "-- [[ MawwwHub Official Script Hub - Ultra Mini HUD & Realtime Device Sync ]] --\nlocal Players = game:GetService(\"Players\")\nlocal LocalPlayer = Players.LocalPlayer\nlocal HttpService = game:GetService(\"HttpService\")\nlocal UserInputService = game:GetService(\"UserInputService\")\n\nlocal Key = \"{KEY}\"\nlocal ApiBase = \"{API_BASE}\"\nlocal BrandName = \"{BRAND_NAME}\"\nlocal PackageName = \"{PACKAGE}\"\nlocal ExpireTimestamp = {EXPIRES_AT_TIMESTAMP} -- Unix seconds (0 = Lifetime)\n\n-- Extract Executor HWID\nlocal function getExecutorHwid()\n    local hwid = \"\"\n    pcall(function()\n        if gethwid then\n            hwid = gethwid()\n        elseif getgenv and getgenv().gethwid then\n            hwid = getgenv().gethwid()\n        elseif identifyexecutor then\n            local exec = identifyexecutor()\n            local cid = \"\"\n            pcall(function() cid = game:GetService(\"RbxAnalyticsService\"):GetClientId() end)\n            hwid = exec .. \"_\" .. (cid ~= \"\" and cid or tostring(LocalPlayer.UserId))\n        else\n            pcall(function() hwid = game:GetService(\"RbxAnalyticsService\"):GetClientId() end)\n            if not hwid or hwid == \"\" then\n                hwid = \"RBX_\" .. tostring(LocalPlayer.UserId)\n            end\n        end\n    end)\n    return (hwid and hwid ~= \"\") and hwid or (\"RBX_ID_\" .. tostring(LocalPlayer.UserId))\nend\n\nlocal DetectedHwid = getExecutorHwid()\n\n-- Background Sync HWID & Roblox Username to Web API\ntask.spawn(function()\n    pcall(function()\n        local syncUrl = ApiBase .. \"/api/key/sync-device?key=\" .. Key .. \"&player=\" .. HttpService:UrlEncode(LocalPlayer.Name) .. \"&hwid=\" .. HttpService:UrlEncode(DetectedHwid)\n        local rawRes = game:HttpGet(syncUrl)\n        if rawRes then\n            local res = HttpService:JSONDecode(rawRes)\n            if res and res.error == \"hwid_mismatch\" then\n                pcall(function()\n                    local oldGui = (game:GetService(\"CoreGui\"):FindFirstChild(\"MawwwHub_VIP_HUD\") or LocalPlayer:FindFirstChild(\"PlayerGui\"):FindFirstChild(\"MawwwHub_VIP_HUD\"))\n                    if oldGui then oldGui:Destroy() end\n                end)\n                error(\"[MawwwHub] \" .. (res.message or \"Key terkunci pada HWID lain!\"))\n            end\n        end\n    end)\nend)\n\nprint(\"[MawwwHub] Key verified for: \" .. LocalPlayer.Name .. \" | HWID: \" .. DetectedHwid)\n\n-- Remove old UI\npcall(function()\n    local old = (game:GetService(\"CoreGui\"):FindFirstChild(\"MawwwHub_VIP_HUD\") or LocalPlayer:FindFirstChild(\"PlayerGui\"):FindFirstChild(\"MawwwHub_VIP_HUD\"))\n    if old then old:Destroy() end\nend)\n\n-- Create ScreenGui\nlocal ScreenGui = Instance.new(\"ScreenGui\")\nScreenGui.Name = \"MawwwHub_VIP_HUD\"\nScreenGui.ResetOnSpawn = false\nScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling\n\npcall(function()\n    ScreenGui.Parent = game:GetService(\"CoreGui\")\nend)\nif not ScreenGui.Parent then\n    ScreenGui.Parent = LocalPlayer:WaitForChild(\"PlayerGui\")\nend\n\n-- 1. Ultra Mini Floating Card (Sangat mini, hemat tempat)\nlocal Card = Instance.new(\"Frame\")\nCard.Name = \"MiniHUD\"\nCard.Size = UDim2.new(0, 205, 0, 26)\nCard.Position = UDim2.new(1, -215, 0, 14)\nCard.BackgroundColor3 = Color3.fromRGB(15, 6, 30)\nCard.BackgroundTransparency = 0.35\nCard.BorderSizePixel = 0\nCard.Active = true\nCard.ClipsDescendants = true\nCard.Parent = ScreenGui\n\nlocal CardCorner = Instance.new(\"UICorner\")\nCardCorner.CornerRadius = UDim.new(0, 13)\nCardCorner.Parent = Card\n\nlocal CardStroke = Instance.new(\"UIStroke\")\nCardStroke.Color = Color3.fromRGB(168, 85, 247)\nCardStroke.Transparency = 0.4\nCardStroke.Thickness = 1.2\nCardStroke.Parent = Card\n\n-- Green dot indicator\nlocal Dot = Instance.new(\"Frame\")\nDot.Size = UDim2.new(0, 6, 0, 6)\nDot.Position = UDim2.new(0, 8, 0.5, -3)\nDot.BackgroundColor3 = Color3.fromRGB(34, 197, 94)\nDot.BorderSizePixel = 0\nDot.Parent = Card\n\nlocal DotCorner = Instance.new(\"UICorner\")\nDotCorner.CornerRadius = UDim.new(1, 0)\nDotCorner.Parent = Dot\n\n-- Duration & Brand Text\nlocal InfoLabel = Instance.new(\"TextLabel\")\nInfoLabel.Size = UDim2.new(1, -40, 1, 0)\nInfoLabel.Position = UDim2.new(0, 18, 0, 0)\nInfoLabel.BackgroundTransparency = 1\nInfoLabel.Text = \"💜 VIP: ...\"\nInfoLabel.TextColor3 = Color3.fromRGB(243, 232, 255)\nInfoLabel.Font = Enum.Font.GothamBold\nInfoLabel.TextSize = 10\nInfoLabel.TextXAlignment = Enum.TextXAlignment.Left\nInfoLabel.Parent = Card\n\n-- Hide / Minimize Button\nlocal HideBtn = Instance.new(\"TextButton\")\nHideBtn.Size = UDim2.new(0, 18, 0, 18)\nHideBtn.Position = UDim2.new(1, -22, 0.5, -9)\nHideBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 85)\nHideBtn.BackgroundTransparency = 0.4\nHideBtn.Text = \"✕\"\nHideBtn.TextColor3 = Color3.fromRGB(216, 180, 254)\nHideBtn.Font = Enum.Font.GothamBold\nHideBtn.TextSize = 9\nHideBtn.Parent = Card\n\nlocal HideBtnCorner = Instance.new(\"UICorner\")\nHideBtnCorner.CornerRadius = UDim.new(0, 9)\nHideBtnCorner.Parent = HideBtn\n\n-- 2. Floating Mini Pill Button (When Hidden)\nlocal MiniPill = Instance.new(\"TextButton\")\nMiniPill.Name = \"MiniPill\"\nMiniPill.Size = UDim2.new(0, 28, 0, 28)\nMiniPill.Position = UDim2.new(1, -38, 0, 14)\nMiniPill.BackgroundColor3 = Color3.fromRGB(20, 8, 40)\nMiniPill.BackgroundTransparency = 0.3\nMiniPill.Text = \"💜\"\nMiniPill.TextSize = 12\nMiniPill.Visible = false\nMiniPill.Active = true\nMiniPill.Parent = ScreenGui\n\nlocal PillCorner = Instance.new(\"UICorner\")\nPillCorner.CornerRadius = UDim.new(1, 0)\nPillCorner.Parent = MiniPill\n\nlocal PillStroke = Instance.new(\"UIStroke\")\nPillStroke.Color = Color3.fromRGB(168, 85, 247)\nPillStroke.Transparency = 0.35\nPillStroke.Thickness = 1.2\nPillStroke.Parent = MiniPill\n\n-- Hide / Expand Toggle Actions\nHideBtn.MouseButton1Click:Connect(function()\n    Card.Visible = false\n    MiniPill.Position = UDim2.new(Card.Position.X.Scale, Card.Position.X.Offset + (Card.AbsoluteSize.X - 30), Card.Position.Y.Scale, Card.Position.Y.Offset)\n    MiniPill.Visible = true\nend)\n\nMiniPill.MouseButton1Click:Connect(function()\n    MiniPill.Visible = false\n    Card.Visible = true\nend)\n\n-- Draggable implementation for both elements\nlocal function makeDraggable(guiObject)\n    local dragging, dragInput, dragStart, startPos\n    guiObject.InputBegan:Connect(function(input)\n        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then\n            dragging = true\n            dragStart = input.Position\n            startPos = guiObject.Position\n            input.Changed:Connect(function()\n                if input.UserInputState == Enum.UserInputState.End then\n                    dragging = false\n                end\n            end)\n        end\n    end)\n    guiObject.InputChanged:Connect(function(input)\n        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then\n            dragInput = input\n        end\n    end)\n    UserInputService.InputChanged:Connect(function(input)\n        if input == dragInput and dragging then\n            local delta = input.Position - dragStart\n            guiObject.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)\n        end\n    end)\nend\n\nmakeDraggable(Card)\nmakeDraggable(MiniPill)\n\n-- Format remaining time helper\nlocal function formatRemaining(seconds)\n    if seconds <= 0 then\n        return \"EXPIRED\"\n    end\n    local days = math.floor(seconds / 86400)\n    local hours = math.floor((seconds % 86400) / 3600)\n    local mins = math.floor((seconds % 3600) / 60)\n    local secs = math.floor(seconds % 60)\n    if days > 0 then\n        return string.format(\"%dH %dJ %dM\", days, hours, mins)\n    elseif hours > 0 then\n        return string.format(\"%dJ %dM %dS\", hours, mins, secs)\n    else\n        return string.format(\"%dM %dS\", mins, secs)\n    end\nend\n\n-- Live Countdown Routine\nlocal isLifetime = (ExpireTimestamp == 0)\ntask.spawn(function()\n    while ScreenGui.Parent do\n        if isLifetime then\n            InfoLabel.Text = \"💜 VIP: PERMANEN\"\n            InfoLabel.TextColor3 = Color3.fromRGB(52, 211, 153)\n        else\n            local now = os.time()\n            local diff = ExpireTimestamp - now\n            if diff <= 0 then\n                InfoLabel.Text = \"⚠️ KEY EXPIRED\"\n                InfoLabel.TextColor3 = Color3.fromRGB(248, 113, 113)\n                Dot.BackgroundColor3 = Color3.fromRGB(239, 68, 68)\n            else\n                InfoLabel.Text = \"⏳ \" .. formatRemaining(diff)\n                InfoLabel.TextColor3 = Color3.fromRGB(253, 224, 71)\n            end\n        end\n        task.wait(1)\n    end\nend)\n\n-- Realtime Web API Verification Sync\ntask.spawn(function()\n    while ScreenGui.Parent do\n        task.wait(60)\n        pcall(function()\n            local response = game:HttpGet(ApiBase .. \"/api/key/verify?key=\" .. Key)\n            if response then\n                local data = HttpService:JSONDecode(response)\n                if data and data.success then\n                    if not data.valid or data.status == \"expired\" or data.status == \"revoked\" then\n                        Dot.BackgroundColor3 = Color3.fromRGB(239, 68, 68)\n                        InfoLabel.Text = \"⚠️ \" .. string.upper(data.status or \"EXPIRED\")\n                        InfoLabel.TextColor3 = Color3.fromRGB(248, 113, 113)\n                    end\n                end\n            end\n        end)\n    end\nend)\n\nprint(\"[MawwwHub] Mini HUD loaded.\")",
     "rawLoaderTemplate": "-- [[ MawwwHub Loader ]] --\n-- Paste kode ini di Executor Anda (Delta, Codex, Solara, Wave, dll):\n_G.MawwwHubKey = \"{KEY}\"\nloadstring(game:HttpGet(\"{API_BASE}/api/raw/mawwwhub?key=\" .. _G.MawwwHubKey))()",
     "maxHwidPerKey": 1,

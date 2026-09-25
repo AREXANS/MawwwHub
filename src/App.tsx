@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { PackagesList } from './components/PackagesList';
+import { AdBanner } from './components/AdBanner';
 import { CheckoutModal } from './components/CheckoutModal';
 import { KeyCheckerModal } from './components/KeyCheckerModal';
 import { ExecutorGuideModal } from './components/ExecutorGuideModal';
@@ -68,6 +69,7 @@ export default function App() {
   }
 
   const brandName = settings?.brandName || "MawwwHub";
+  const adBanner = settings?.adBanner;
 
   return (
     <div className="min-h-screen flex flex-col bg-[#080214] text-slate-100 selection:bg-purple-500 selection:text-white">
@@ -91,11 +93,26 @@ export default function App() {
           onOpenKeyChecker={() => setIsKeyCheckerOpen(true)}
         />
 
+        {/* Ad Banner - Top Position */}
+        {adBanner?.enabled && adBanner.position === 'top' && (
+          <AdBanner banner={adBanner} />
+        )}
+
+        {/* Ad Banner - Middle Position (default) */}
+        {adBanner?.enabled && (adBanner.position === 'middle' || !adBanner.position) && (
+          <AdBanner banner={adBanner} />
+        )}
+
         {/* Script Packages & Catalog */}
         <PackagesList
           settings={settings}
           onSelectPackage={(pkg) => setSelectedPackage(pkg)}
         />
+
+        {/* Ad Banner - Bottom Position */}
+        {adBanner?.enabled && adBanner.position === 'bottom' && (
+          <AdBanner banner={adBanner} />
+        )}
 
         {/* Interactive Quick Tools Banner */}
         <section className="max-w-5xl mx-auto px-4 py-8 mb-12">
@@ -105,9 +122,11 @@ export default function App() {
                 <Terminal className="w-6 h-6 text-purple-300" />
               </div>
               <div>
-                <h4 className="text-base font-bold text-white">Sudah Punya Key MawwwHub?</h4>
+                <h4 className="text-base font-bold text-white">
+                  {settings?.quickToolsTitle || "Sudah Punya Key MawwwHub?"}
+                </h4>
                 <p className="text-xs text-purple-300/80">
-                  Cek sisa masa aktif key Anda atau pelajari cara eksekusi script di HP Android dan PC.
+                  {settings?.quickToolsDesc || "Cek sisa masa aktif key Anda atau pelajari cara eksekusi script di HP Android dan PC."}
                 </p>
               </div>
             </div>
@@ -117,13 +136,13 @@ export default function App() {
                 onClick={() => setIsKeyCheckerOpen(true)}
                 className="px-4 py-2 rounded-xl bg-purple-900/60 hover:bg-purple-800 border border-purple-700/60 text-xs font-semibold text-purple-200 transition"
               >
-                Cek Validasi Key
+                {settings?.quickToolsBtn1Text || "Cek Validasi Key"}
               </button>
               <button
                 onClick={() => setIsGuideOpen(true)}
                 className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-xs font-bold text-white transition shadow-md shadow-purple-900/40"
               >
-                Tutorial Executor
+                {settings?.quickToolsBtn2Text || "Tutorial Executor"}
               </button>
             </div>
           </div>
@@ -166,7 +185,7 @@ export default function App() {
           </div>
 
           <div className="text-[11px] text-purple-400/50">
-            Powered by ArexansPay Multi-Bank & QRIS Automation
+            {settings?.footerText || "Powered by ArexansPay Multi-Bank & QRIS Automation"}
           </div>
 
         </div>

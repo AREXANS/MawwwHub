@@ -17,6 +17,58 @@ export const Hero: React.FC<HeroProps> = ({
   const headline = settings?.heroHeadline || "MawwwHub Script Executor & VIP Hub";
   const subheadline = settings?.heroSubheadline || "Script Roblox terbaik, undetected, auto update & aktivasi key instan otomatis 24/7.";
   const announcement = settings?.announcementText;
+  const statusBadgeText = settings?.statusBadgeText || "MawwwHub Status: Undetected & Online";
+  const statusBadgeType = settings?.statusBadgeType || "online";
+  const statusSubtext = settings?.statusSubtext || "ArexansPay Multi-Payment Aktif";
+
+  const defaultPills = [
+    {
+      id: 'pill-1',
+      icon: 'zap' as const,
+      title: 'Instan Delivery',
+      description: 'Key & loadstring langsung terbit hitungan detik setelah bayar.'
+    },
+    {
+      id: 'pill-2',
+      icon: 'shield' as const,
+      title: 'Bypass Anti-Cheat',
+      description: 'Perlindungan keamanan tinggi aman dari ban Roblox.'
+    },
+    {
+      id: 'pill-3',
+      icon: 'check' as const,
+      title: 'Multi-Payment Otomatis',
+      description: 'Mendukung QRIS, DANA, GoPay, OVO, BCA, BRI, Mandiri, SeaBank.'
+    },
+    {
+      id: 'pill-4',
+      icon: 'sparkles' as const,
+      title: 'Universal Support',
+      description: 'Lancar untuk Delta, Codex, Arceus X, Solara & Wave.'
+    }
+  ];
+
+  const pills = (settings?.heroPills && settings.heroPills.length > 0) ? settings.heroPills : defaultPills;
+
+  const renderIcon = (iconName: string) => {
+    switch (iconName) {
+      case 'shield':
+        return <ShieldCheck className="w-4 h-4 text-emerald-400" />;
+      case 'check':
+        return <CheckCircle2 className="w-4 h-4 text-cyan-400" />;
+      case 'sparkles':
+        return <Sparkles className="w-4 h-4 text-amber-400" />;
+      case 'zap':
+      default:
+        return <Zap className="w-4 h-4 text-purple-400" />;
+    }
+  };
+
+  const getStatusDotColor = () => {
+    if (statusBadgeType === 'updating') return 'bg-amber-400';
+    if (statusBadgeType === 'maintenance') return 'bg-red-400';
+    return 'bg-emerald-400';
+  };
 
   return (
     <div className="relative pt-8 pb-16 md:pt-14 md:pb-24 overflow-hidden">
@@ -29,12 +81,16 @@ export const Hero: React.FC<HeroProps> = ({
         
         {/* Status Badge */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-950/70 border border-purple-800/60 shadow-lg shadow-purple-950/50 mb-6 animate-fade-in">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className={`w-2 h-2 rounded-full ${getStatusDotColor()} animate-pulse`} />
           <span className="text-xs font-semibold text-purple-200">
-            MawwwHub Status: <span className="text-emerald-400 font-bold">Undetected & Online</span>
+            {statusBadgeText}
           </span>
-          <span className="text-purple-400 text-xs">•</span>
-          <span className="text-xs text-purple-300/80">ArexansPay Gateway Aktif</span>
+          {statusSubtext && (
+            <>
+              <span className="text-purple-400 text-xs">•</span>
+              <span className="text-xs text-purple-300/80">{statusSubtext}</span>
+            </>
+          )}
         </div>
 
         {/* Announcement Banner if any */}
@@ -80,37 +136,15 @@ export const Hero: React.FC<HeroProps> = ({
 
         {/* Feature Highlights Pills */}
         <div className="mt-14 pt-8 border-t border-purple-900/30 grid grid-cols-2 sm:grid-cols-4 gap-3 text-left">
-          <div className="p-3.5 rounded-xl bg-purple-950/20 border border-purple-900/40">
-            <div className="flex items-center gap-2 mb-1">
-              <Zap className="w-4 h-4 text-purple-400" />
-              <span className="text-xs font-bold text-white">Instan Delivery</span>
+          {pills.map((pill) => (
+            <div key={pill.id} className="p-3.5 rounded-xl bg-purple-950/20 border border-purple-900/40">
+              <div className="flex items-center gap-2 mb-1">
+                {renderIcon(pill.icon)}
+                <span className="text-xs font-bold text-white">{pill.title}</span>
+              </div>
+              <p className="text-[11px] text-purple-300/70">{pill.description}</p>
             </div>
-            <p className="text-[11px] text-purple-300/70">Key & loadstring langsung terbit hitungan detik setelah bayar.</p>
-          </div>
-
-          <div className="p-3.5 rounded-xl bg-purple-950/20 border border-purple-900/40">
-            <div className="flex items-center gap-2 mb-1">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span className="text-xs font-bold text-white">Bypass Anti-Cheat</span>
-            </div>
-            <p className="text-[11px] text-purple-300/70">Perlindungan keamanan tinggi aman dari ban Roblox.</p>
-          </div>
-
-          <div className="p-3.5 rounded-xl bg-purple-950/20 border border-purple-900/40">
-            <div className="flex items-center gap-2 mb-1">
-              <CheckCircle2 className="w-4 h-4 text-cyan-400" />
-              <span className="text-xs font-bold text-white">ArexansPay QRIS</span>
-            </div>
-            <p className="text-[11px] text-purple-300/70">Mendukung semua m-Banking BCA, Mandiri, BRI, SeaBank & E-Wallet.</p>
-          </div>
-
-          <div className="p-3.5 rounded-xl bg-purple-950/20 border border-purple-900/40">
-            <div className="flex items-center gap-2 mb-1">
-              <Sparkles className="w-4 h-4 text-amber-400" />
-              <span className="text-xs font-bold text-white">Universal Support</span>
-            </div>
-            <p className="text-[11px] text-purple-300/70">Lancar untuk Delta, Codex, Arceus X, Solara & Wave.</p>
-          </div>
+          ))}
         </div>
 
       </div>

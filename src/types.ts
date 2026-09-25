@@ -9,6 +9,37 @@ export interface ScriptPackage {
   isActive: boolean;
 }
 
+export interface PaymentMethodConfig {
+  id: string;
+  name: string;
+  code: string;
+  category: 'qris' | 'ewallet' | 'bank';
+  accountNumber?: string;
+  accountHolder?: string;
+  instructions?: string;
+  isActive: boolean;
+  isDefault?: boolean;
+}
+
+export interface AdBannerConfig {
+  enabled: boolean;
+  type: 'image' | 'video' | 'youtube';
+  mediaUrl: string;
+  title?: string;
+  badge?: string;
+  description?: string;
+  targetUrl?: string;
+  buttonText?: string;
+  position: 'top' | 'middle' | 'bottom';
+}
+
+export interface HeroPillConfig {
+  id: string;
+  icon: 'zap' | 'shield' | 'check' | 'sparkles';
+  title: string;
+  description: string;
+}
+
 export interface IssuedKey {
   key: string;
   packageId: string;
@@ -55,6 +86,16 @@ export interface AppPublicSettings {
   tagline: string;
   heroHeadline: string;
   heroSubheadline: string;
+  statusBadgeText?: string;
+  statusBadgeType?: 'online' | 'updating' | 'maintenance';
+  statusSubtext?: string;
+  heroPills?: HeroPillConfig[];
+  adBanner?: AdBannerConfig;
+  quickToolsTitle?: string;
+  quickToolsDesc?: string;
+  quickToolsBtn1Text?: string;
+  quickToolsBtn2Text?: string;
+  footerText?: string;
   gameName: string;
   scriptDescription: string;
   scriptFeatures: string[];
@@ -66,6 +107,7 @@ export interface AppPublicSettings {
   enableOrderWhatsapp?: boolean;
   enableCustomKeyOrder?: boolean;
   packages: ScriptPackage[];
+  paymentMethods: PaymentMethodConfig[];
   defaultChannel: string;
   simulationEnabled: boolean;
   apiBase: string;
@@ -77,6 +119,16 @@ export interface FullAdminSettings {
   tagline: string;
   heroHeadline: string;
   heroSubheadline: string;
+  statusBadgeText?: string;
+  statusBadgeType?: 'online' | 'updating' | 'maintenance';
+  statusSubtext?: string;
+  heroPills?: HeroPillConfig[];
+  adBanner?: AdBannerConfig;
+  quickToolsTitle?: string;
+  quickToolsDesc?: string;
+  quickToolsBtn1Text?: string;
+  quickToolsBtn2Text?: string;
+  footerText?: string;
   gameName: string;
   scriptDescription: string;
   scriptFeatures: string[];
@@ -92,6 +144,7 @@ export interface FullAdminSettings {
   rawLoaderTemplate: string;
   maxHwidPerKey: number;
   enableHwidLock: boolean;
+  paymentMethods: PaymentMethodConfig[];
   arexanspay: {
     apiUrl: string;
     apiKey: string;
