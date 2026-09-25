@@ -12,7 +12,7 @@ import {
   DUMMY_ACCOUNT_NUMBERS,
   DUMMY_API_KEY,
   DUMMY_QRIS_ID
-} from './db.ts';
+} from './db';
 
 const ADMIN_USER = "mawwwhub";
 const ADMIN_PASS = "mawwwhub201122@";

@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import express, { Request, Response } from 'express';
-import { createExpressApp } from './server/app.ts';
+import { createExpressApp } from './server/app';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
