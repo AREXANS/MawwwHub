@@ -13,7 +13,7 @@ async function main() {
   const PORT = parseInt(process.env.PORT || '3000', 10);
 
   // Setup Vite (dev) or Static File Serving (prod)
-  const isProd = process.env.NODE_ENV === 'production' || fs.existsSync(path.resolve(__dirname, 'dist'));
+  const isProd = process.env.NODE_ENV === 'production';
 
   if (!isProd) {
     const vite = await createViteServer({

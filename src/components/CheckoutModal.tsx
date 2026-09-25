@@ -55,17 +55,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [copiedScript, setCopiedScript] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
 
-  // Available payment methods from settings or defaults
-  const paymentMethods: PaymentMethodConfig[] = (settings?.paymentMethods && settings.paymentMethods.length > 0)
-    ? settings.paymentMethods
-    : [
-        { id: 'qris', name: 'QRIS All Payment (GPN)', code: 'qris', category: 'qris', isActive: true, isDefault: true },
-        { id: 'dana', name: 'DANA Instant', code: 'dana', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', isActive: true },
-        { id: 'gopay', name: 'GoPay / Gojek', code: 'gopay', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', isActive: true },
-        { id: 'ovo', name: 'OVO Cash', code: 'ovo', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', isActive: true },
-        { id: 'bank_bca', name: 'Bank Central Asia (BCA)', code: 'bca', category: 'bank', accountNumber: '8735091823', accountHolder: 'MawwwHub Store', isActive: true },
-        { id: 'bank_seabank', name: 'SeaBank (Transfer Gratis)', code: 'seabank', category: 'bank', accountNumber: '901928475829', accountHolder: 'MawwwHub Store', isActive: true }
-      ];
+  // Available payment methods strictly from backend settings (no hardcoded dummy fallback)
+  const paymentMethods: PaymentMethodConfig[] = settings?.paymentMethods || [];
 
   const activeMethods = paymentMethods.filter(m => m.isActive);
 
@@ -74,6 +65,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     if (activeMethods.length > 0 && !activeMethods.some(m => m.id === paymentChannel || m.code === paymentChannel)) {
       const def = activeMethods.find(m => m.isDefault) || activeMethods[0];
       setPaymentChannel(def.id || def.code);
+    } else if (activeMethods.length === 0) {
+      setPaymentChannel('');
     }
   }, [activeMethods]);
 
@@ -98,6 +91,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const handleCreateOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!pkg) return;
+
+    if (activeMethods.length === 0) {
+      setErrorMsg('Metode pembayaran belum tersedia. Developer belum mengisi integrasi Payment Gateway ArexansPay di /dev.');
+      return;
+    }
     
     // Only require username if enabled in /dev
     if (settings?.enableOrderUsername && !robloxUsername.trim()) {
@@ -410,107 +408,123 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   </span>
                 </div>
 
-                {/* Category Filter Tabs */}
-                <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#080214] border border-purple-900/60 text-[11px]">
-                  <button
-                    type="button"
-                    onClick={() => setChannelCategoryFilter('all')}
-                    className={`flex-1 py-1 rounded-lg font-semibold transition ${
-                      channelCategoryFilter === 'all'
-                        ? 'bg-purple-600 text-white shadow-sm'
-                        : 'text-purple-300/70 hover:text-white'
-                    }`}
-                  >
-                    Semua ({activeMethods.length})
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setChannelCategoryFilter('qris')}
-                    className={`flex-1 py-1 rounded-lg font-semibold transition ${
-                      channelCategoryFilter === 'qris'
-                        ? 'bg-purple-600 text-white shadow-sm'
-                        : 'text-purple-300/70 hover:text-white'
-                    }`}
-                  >
-                    QRIS
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setChannelCategoryFilter('ewallet')}
-                    className={`flex-1 py-1 rounded-lg font-semibold transition ${
-                      channelCategoryFilter === 'ewallet'
-                        ? 'bg-purple-600 text-white shadow-sm'
-                        : 'text-purple-300/70 hover:text-white'
-                    }`}
-                  >
-                    E-Wallet
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setChannelCategoryFilter('bank')}
-                    className={`flex-1 py-1 rounded-lg font-semibold transition ${
-                      channelCategoryFilter === 'bank'
-                        ? 'bg-purple-600 text-white shadow-sm'
-                        : 'text-purple-300/70 hover:text-white'
-                    }`}
-                  >
-                    Bank & VA
-                  </button>
-                </div>
-
-                {/* Methods Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1 custom-scrollbar">
-                  {filteredMethods.map((method) => {
-                    const isSelected = paymentChannel === method.id || paymentChannel === method.code;
-                    return (
-                      <div
-                        key={method.id}
-                        onClick={() => setPaymentChannel(method.id || method.code)}
-                        className={`p-3 rounded-xl border cursor-pointer transition text-xs flex items-center gap-2.5 ${
-                          isSelected
-                            ? 'bg-purple-900/50 border-purple-500 shadow-md shadow-purple-900/40 text-white'
-                            : 'bg-purple-950/20 border-purple-900/40 text-purple-300/70 hover:bg-purple-950/40 hover:text-purple-100'
+                {activeMethods.length === 0 ? (
+                  <div className="p-4 rounded-xl bg-amber-950/30 border border-amber-700/50 text-center space-y-1.5">
+                    <AlertCircle className="w-6 h-6 text-amber-400 mx-auto" />
+                    <div className="text-xs font-bold text-amber-200">
+                      Metode Pembayaran Belum Tersedia
+                    </div>
+                    <p className="text-[11px] text-amber-300/80 leading-relaxed">
+                      Metode pembayaran (QRIS / E-Wallet / Bank) tidak ditampilkan karena Mode Simulasi sedang dinonaktifkan dan integrasi Payment Gateway <b>arexanspay.my.id</b> belum diisi di halaman <code className="text-amber-200 font-mono-code">/dev</code>.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Category Filter Tabs */}
+                    <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#080214] border border-purple-900/60 text-[11px]">
+                      <button
+                        type="button"
+                        onClick={() => setChannelCategoryFilter('all')}
+                        className={`flex-1 py-1 rounded-lg font-semibold transition ${
+                          channelCategoryFilter === 'all'
+                            ? 'bg-purple-600 text-white shadow-sm'
+                            : 'text-purple-300/70 hover:text-white'
                         }`}
                       >
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                          isSelected ? 'bg-purple-600 text-white' : 'bg-purple-900/40 text-purple-400'
-                        }`}>
-                          {method.category === 'qris' && <QrCode className="w-4 h-4" />}
-                          {method.category === 'ewallet' && <Smartphone className="w-4 h-4" />}
-                          {method.category === 'bank' && <Building2 className="w-4 h-4" />}
-                        </div>
+                        Semua ({activeMethods.length})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setChannelCategoryFilter('qris')}
+                        className={`flex-1 py-1 rounded-lg font-semibold transition ${
+                          channelCategoryFilter === 'qris'
+                            ? 'bg-purple-600 text-white shadow-sm'
+                            : 'text-purple-300/70 hover:text-white'
+                        }`}
+                      >
+                        QRIS
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setChannelCategoryFilter('ewallet')}
+                        className={`flex-1 py-1 rounded-lg font-semibold transition ${
+                          channelCategoryFilter === 'ewallet'
+                            ? 'bg-purple-600 text-white shadow-sm'
+                            : 'text-purple-300/70 hover:text-white'
+                        }`}
+                      >
+                        E-Wallet
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setChannelCategoryFilter('bank')}
+                        className={`flex-1 py-1 rounded-lg font-semibold transition ${
+                          channelCategoryFilter === 'bank'
+                            ? 'bg-purple-600 text-white shadow-sm'
+                            : 'text-purple-300/70 hover:text-white'
+                        }`}
+                      >
+                        Bank & VA
+                      </button>
+                    </div>
 
-                        <div className="flex-1 min-w-0">
-                          <div className="font-bold truncate text-white">{method.name}</div>
-                          <div className="text-[10px] text-purple-400/80 truncate">
-                            {method.category === 'qris' && 'GPN Semua Aplikasi & Bank'}
-                            {method.category === 'ewallet' && (method.accountNumber ? `No: ${method.accountNumber}` : 'Konfirmasi Instan')}
-                            {method.category === 'bank' && (method.accountNumber ? `Rek: ${method.accountNumber}` : 'Transfer Bank / VA')}
+                    {/* Methods Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1 custom-scrollbar">
+                      {filteredMethods.map((method) => {
+                        const isSelected = paymentChannel === method.id || paymentChannel === method.code;
+                        return (
+                          <div
+                            key={method.id}
+                            onClick={() => setPaymentChannel(method.id || method.code)}
+                            className={`p-3 rounded-xl border cursor-pointer transition text-xs flex items-center gap-2.5 ${
+                              isSelected
+                                ? 'bg-purple-900/50 border-purple-500 shadow-md shadow-purple-900/40 text-white'
+                                : 'bg-purple-950/20 border-purple-900/40 text-purple-300/70 hover:bg-purple-950/40 hover:text-purple-100'
+                            }`}
+                          >
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                              isSelected ? 'bg-purple-600 text-white' : 'bg-purple-900/40 text-purple-400'
+                            }`}>
+                              {method.category === 'qris' && <QrCode className="w-4 h-4" />}
+                              {method.category === 'ewallet' && <Smartphone className="w-4 h-4" />}
+                              {method.category === 'bank' && <Building2 className="w-4 h-4" />}
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                              <div className="font-bold truncate text-white">{method.name}</div>
+                              <div className="text-[10px] text-purple-400/80 truncate">
+                                {method.category === 'qris' && 'GPN Semua Aplikasi & Bank'}
+                                {method.category === 'ewallet' && (method.accountNumber ? `No: ${method.accountNumber}` : 'Konfirmasi Instan')}
+                                {method.category === 'bank' && (method.accountNumber ? `Rek: ${method.accountNumber}` : 'Transfer Bank / VA')}
+                              </div>
+                            </div>
+
+                            <div className={`w-4 h-4 rounded-full border flex items-center justify-center flex-shrink-0 ${
+                              isSelected ? 'border-purple-400 bg-purple-500 text-white' : 'border-purple-800'
+                            }`}>
+                              {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                            </div>
                           </div>
-                        </div>
-
-                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center flex-shrink-0 ${
-                          isSelected ? 'border-purple-400 bg-purple-500 text-white' : 'border-purple-800'
-                        }`}>
-                          {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className="pt-2">
                 <button
                   type="submit"
-                  disabled={isLoading}
-                  className="w-full py-3 px-4 rounded-xl font-bold text-xs uppercase tracking-wider bg-gradient-to-r from-purple-600 via-violet-600 to-fuchsia-600 hover:from-purple-500 hover:to-violet-500 text-white shadow-lg shadow-purple-900/50 transition active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                  disabled={isLoading || activeMethods.length === 0}
+                  className="w-full py-3 px-4 rounded-xl font-bold text-xs uppercase tracking-wider bg-gradient-to-r from-purple-600 via-violet-600 to-fuchsia-600 hover:from-purple-500 hover:to-violet-500 text-white shadow-lg shadow-purple-900/50 transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {isLoading ? (
                     <>
                       <RefreshCw className="w-4 h-4 animate-spin" />
                       <span>Membuat Tagihan ArexansPay...</span>
                     </>
+                  ) : activeMethods.length === 0 ? (
+                    <span>Pembayaran Belum Tersedia</span>
                   ) : (
                     <>
                       <span>Lanjut Pembayaran ({formatRupiah(pkg.price)})</span>
@@ -622,7 +636,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     />
                   ) : (
                     <div className="w-full aspect-square bg-slate-100 flex items-center justify-center text-xs text-slate-400">
-                      Memuat Barcode...
+                      QRIS tidak tersedia
                     </div>
                   )}
 
@@ -630,7 +644,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     {transaction.accountHolder || 'MawwwHub Store'}
                   </div>
                   <div className="text-[9px] text-slate-500 font-mono-code">
-                    NMID: ID1020021590123 / {transaction.bankName}
+                    {transaction.bankName}
                   </div>
                 </div>
               )}
@@ -670,7 +684,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </button>
 
                 {/* Simulation Button for fast testing */}
-                {(settings?.simulationEnabled ?? true) && (
+                {(settings?.simulationEnabled ?? false) && (
                   <button
                     type="button"
                     onClick={handleSimulatePayment}

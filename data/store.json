@@ -89,8 +89,8 @@
         "name": "DANA Instant",
         "code": "dana",
         "category": "ewallet",
-        "accountNumber": "081234567890",
-        "accountHolder": "MawwwHub Store",
+        "accountNumber": "",
+        "accountHolder": "",
         "instructions": "Transfer ke nomor akun DANA di atas. Masukkan nominal tepat beserta kode unik agar otomatis terkonfirmasi.",
         "isActive": true
       },
@@ -99,8 +99,8 @@
         "name": "GoPay / Gojek",
         "code": "gopay",
         "category": "ewallet",
-        "accountNumber": "081234567890",
-        "accountHolder": "MawwwHub Store",
+        "accountNumber": "",
+        "accountHolder": "",
         "instructions": "Transfer saldo GoPay ke nomor di atas. Pembayaran terverifikasi otomatis.",
         "isActive": true
       },
@@ -109,8 +109,8 @@
         "name": "OVO Cash",
         "code": "ovo",
         "category": "ewallet",
-        "accountNumber": "081234567890",
-        "accountHolder": "MawwwHub Store",
+        "accountNumber": "",
+        "accountHolder": "",
         "instructions": "Buka aplikasi OVO dan transfer ke nomor di atas sesuai total pembayaran.",
         "isActive": true
       },
@@ -119,8 +119,8 @@
         "name": "ShopeePay",
         "code": "shopeepay",
         "category": "ewallet",
-        "accountNumber": "081234567890",
-        "accountHolder": "MawwwHub Store",
+        "accountNumber": "",
+        "accountHolder": "",
         "instructions": "Transfer ShopeePay ke nomor di atas dengan nominal yang tepat.",
         "isActive": true
       },
@@ -129,8 +129,8 @@
         "name": "LinkAja",
         "code": "linkaja",
         "category": "ewallet",
-        "accountNumber": "081234567890",
-        "accountHolder": "MawwwHub Store",
+        "accountNumber": "",
+        "accountHolder": "",
         "instructions": "Transfer via aplikasi LinkAja ke nomor tertera.",
         "isActive": false
       },
@@ -139,8 +139,8 @@
         "name": "Bank Central Asia (BCA)",
         "code": "bca",
         "category": "bank",
-        "accountNumber": "8735091823",
-        "accountHolder": "MawwwHub Store",
+        "accountNumber": "",
+        "accountHolder": "",
         "instructions": "Transfer via m-BCA atau KlikBCA. Wajib transfer sesuai nominal hingga 3 digit kode unik.",
         "isActive": true
       },
@@ -149,8 +149,8 @@
         "name": "Bank Rakyat Indonesia (BRI)",
         "code": "bri",
         "category": "bank",
-        "accountNumber": "012901092839501",
-        "accountHolder": "MawwwHub Store",
+        "accountNumber": "",
+        "accountHolder": "",
         "instructions": "Transfer via BRImo atau ATM BRI dengan nominal pas termasuk kode unik.",
         "isActive": true
       },
@@ -159,8 +159,8 @@
         "name": "Bank Mandiri (Livin)",
         "code": "mandiri",
         "category": "bank",
-        "accountNumber": "1370019284950",
-        "accountHolder": "MawwwHub Store",
+        "accountNumber": "",
+        "accountHolder": "",
         "instructions": "Transfer via Livin by Mandiri. Transfer tepat sesuai kode unik.",
         "isActive": true
       },
@@ -169,8 +169,8 @@
         "name": "Bank Negara Indonesia (BNI)",
         "code": "bni",
         "category": "bank",
-        "accountNumber": "0981726481",
-        "accountHolder": "MawwwHub Store",
+        "accountNumber": "",
+        "accountHolder": "",
         "instructions": "Transfer via BNI Mobile Banking dengan nominal tepat.",
         "isActive": true
       },
@@ -179,8 +179,8 @@
         "name": "SeaBank (Transfer Gratis)",
         "code": "seabank",
         "category": "bank",
-        "accountNumber": "901928475829",
-        "accountHolder": "MawwwHub Store",
+        "accountNumber": "",
+        "accountHolder": "",
         "instructions": "Bebas biaya admin transfer dari e-wallet/bank lain ke rekening SeaBank ini.",
         "isActive": true
       },
@@ -189,8 +189,8 @@
         "name": "Bank Syariah Indonesia (BSI)",
         "code": "bsi",
         "category": "bank",
-        "accountNumber": "7192837495",
-        "accountHolder": "MawwwHub Store",
+        "accountNumber": "",
+        "accountHolder": "",
         "instructions": "Transfer via BSI Mobile. Transfer nominal tepat untuk aktivasi instan.",
         "isActive": true
       },
@@ -199,19 +199,19 @@
         "name": "Bank Permata",
         "code": "permata",
         "category": "bank",
-        "accountNumber": "49281729384",
-        "accountHolder": "MawwwHub Store",
+        "accountNumber": "",
+        "accountHolder": "",
         "instructions": "Transfer via PermataMobile X atau ATM Permata.",
         "isActive": false
       }
     ],
     "arexanspay": {
       "apiUrl": "https://arexanspay.my.id",
-      "apiKey": "arexanspay_07365360dc0f8af09d084ae8be829ce8499eca3f95c33bb0cfe3608e4aea9a44",
-      "qrisId": "axspay-na49b8c-ec96-41dc-a4e2-1293e755a81h",
+      "apiKey": "",
+      "qrisId": "",
       "webhookSecret": "",
       "numberId": 1,
-      "enableSimulation": true,
+      "enableSimulation": false,
       "defaultChannel": "qris"
     },
     "packages": [
@@ -257,21 +257,7 @@
       }
     ]
   },
-  "keys": [
-    {
-      "key": "MWH-DEMO-LIFETIME-DEVKEY",
-      "packageId": "pkg-perm",
-      "packageName": "Paket Lifetime (Permanen)",
-      "durationDays": -1,
-      "createdAt": "2026-09-25T17:38:18.722Z",
-      "expiresAt": null,
-      "status": "active",
-      "customerNote": "Official Developer Key MawwwHub",
-      "robloxUsername": "Admin_MawwwHub",
-      "hwid": "TEST_HWID_DEVICE",
-      "lastUsedAt": "2026-09-25T17:39:06.010Z"
-    }
-  ],
+  "keys": [],
   "transactions": [],
   "adminTokens": [
     "mawwwhub-permanent-session-token"

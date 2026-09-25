@@ -3,15 +3,62 @@ import QRCode from 'qrcode';
 import {
   readDatabase,
   writeDatabase,
+  resetAllDatabaseData,
   generateKeyString,
   Transaction,
   IssuedKey,
-  AppSettings
+  AppSettings,
+  PaymentMethodConfig,
+  DUMMY_ACCOUNT_NUMBERS,
+  DUMMY_API_KEY,
+  DUMMY_QRIS_ID
 } from './db.ts';
 
 const ADMIN_USER = "mawwwhub";
 const ADMIN_PASS = "mawwwhub201122@";
 const ADMIN_FIXED_TOKEN = "mawwwhub_auth_permanent_key_201122";
+
+export function isArexansPayConfigured(arexanspay?: AppSettings['arexanspay']): boolean {
+  if (!arexanspay) return false;
+  const apiUrl = (arexanspay.apiUrl || '').trim();
+  const apiKey = (arexanspay.apiKey || '').trim();
+  if (!apiUrl || !apiKey) return false;
+  if (apiKey === DUMMY_API_KEY) return false;
+  return true;
+}
+
+export function getPublicPaymentMethods(settings: AppSettings): PaymentMethodConfig[] {
+  const simulationEnabled = settings.arexanspay?.enableSimulation ?? false;
+  const gatewayReady = isArexansPayConfigured(settings.arexanspay);
+  const qrisIdReady = Boolean(
+    settings.arexanspay?.qrisId &&
+    settings.arexanspay.qrisId.trim().length > 0 &&
+    settings.arexanspay.qrisId.trim() !== DUMMY_QRIS_ID
+  );
+
+  // Jika simulasi dinonaktifkan dan dev belum mengisi integrasi payment gateway ArexansPay di /dev,
+  // metode pembayaran (QRIS / E-Wallet / Bank) tidak boleh muncul sama sekali
+  if (!simulationEnabled && !gatewayReady) {
+    return [];
+  }
+
+  return (settings.paymentMethods || []).filter(m => {
+    if (!m.isActive) return false;
+
+    if (simulationEnabled) {
+      return true;
+    }
+
+    // Saat simulasi dinonaktifkan, hanya tampilkan metode yang benar-benar sudah dikonfigurasi di /dev
+    if (m.category === 'qris') {
+      return gatewayReady && qrisIdReady;
+    }
+
+    const cleanAcc = (m.accountNumber || '').trim();
+    const hasValidAccount = cleanAcc.length > 0 && !DUMMY_ACCOUNT_NUMBERS.includes(cleanAcc);
+    return gatewayReady && hasValidAccount;
+  });
+}
 
 export function getAppBaseUrl(req: Request): string {
   const forwardedProto = req.headers['x-forwarded-proto'];
@@ -119,9 +166,10 @@ export function createExpressApp() {
         enableOrderWhatsapp: s.enableOrderWhatsapp ?? false,
         enableCustomKeyOrder: s.enableCustomKeyOrder ?? true,
         packages: s.packages.filter(p => p.isActive),
-        paymentMethods: (s.paymentMethods || []).filter(m => m.isActive),
+        paymentMethods: getPublicPaymentMethods(s),
         defaultChannel: s.arexanspay.defaultChannel || 'qris',
-        simulationEnabled: s.arexanspay.enableSimulation ?? true,
+        simulationEnabled: s.arexanspay.enableSimulation ?? false,
+        gatewayConfigured: isArexansPayConfigured(s.arexanspay),
         apiBase: baseUrl
       }
     });
@@ -172,6 +220,16 @@ export function createExpressApp() {
     });
   });
 
+  // 5c. Admin Reset / Hapus Semua Data
+  api.post('/admin/reset-data', requireAdmin, (_req: Request, res: Response) => {
+    const cleanDb = resetAllDatabaseData();
+    return res.json({
+      success: true,
+      message: "Semua data (Key, Transaksi, dan Kredensial Payment Gateway) berhasil dihapus dan di-reset bersih!",
+      data: cleanDb.settings
+    });
+  });
+
   // 6. Admin Stats
   api.get('/admin/stats', requireAdmin, (_req: Request, res: Response) => {
     const db = readDatabase();
@@ -212,6 +270,16 @@ export function createExpressApp() {
     return res.json({
       success: true,
       data: db.keys
+    });
+  });
+
+  api.delete('/admin/keys', requireAdmin, (_req: Request, res: Response) => {
+    const db = readDatabase();
+    db.keys = [];
+    writeDatabase(db);
+    return res.json({
+      success: true,
+      message: "Semua data key berhasil dihapus!"
     });
   });
 
@@ -273,9 +341,9 @@ export function createExpressApp() {
     if (index === -1) {
       return res.status(404).json({ success: false, message: "Key tidak ditemukan" });
     }
-    db.keys[index].status = 'revoked';
+    db.keys.splice(index, 1);
     writeDatabase(db);
-    return res.json({ success: true, message: `Key ${key} berhasil dicabut (Revoked).` });
+    return res.json({ success: true, message: `Key ${key} berhasil dihapus.` });
   });
 
   // 8. Admin Transaction Management
@@ -284,6 +352,16 @@ export function createExpressApp() {
     return res.json({
       success: true,
       data: db.transactions
+    });
+  });
+
+  api.delete('/admin/transactions', requireAdmin, (_req: Request, res: Response) => {
+    const db = readDatabase();
+    db.transactions = [];
+    writeDatabase(db);
+    return res.json({
+      success: true,
+      message: "Semua riwayat transaksi berhasil dihapus!"
     });
   });
 
@@ -377,6 +455,36 @@ export function createExpressApp() {
         return res.status(404).json({ success: false, message: "Paket script tidak ditemukan atau sedang nonaktif." });
       }
 
+      const arexConfig = db.settings.arexanspay;
+      const simulationEnabled = arexConfig?.enableSimulation ?? false;
+      const gatewayConfigured = isArexansPayConfigured(arexConfig);
+
+      // Wajib tolak jika simulasi dinonaktifkan dan dev belum mengisi integrasi ArexansPay di /dev
+      if (!simulationEnabled && !gatewayConfigured) {
+        return res.status(400).json({
+          success: false,
+          message: "Metode pembayaran belum tersedia. Developer belum mengonfigurasi integrasi Payment Gateway ArexansPay (arexanspay.my.id) di /dev."
+        });
+      }
+
+      const availableMethods = getPublicPaymentMethods(db.settings);
+      if (availableMethods.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Tidak ada metode pembayaran yang aktif. Silakan konfigurasi integrasi ArexansPay & nomor rekening/e-wallet di /dev."
+        });
+      }
+
+      const channel = paymentChannel || 'qris';
+      const selectedMethod = availableMethods.find(m => m.id === channel || m.code === channel);
+
+      if (!selectedMethod) {
+        return res.status(400).json({
+          success: false,
+          message: "Metode pembayaran yang dipilih tidak aktif atau belum dikonfigurasi di /dev."
+        });
+      }
+
       let cleanCustomKey: string | undefined = undefined;
       if (customKey && typeof customKey === 'string' && customKey.trim().length > 0) {
         cleanCustomKey = customKey.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '');
@@ -394,24 +502,20 @@ export function createExpressApp() {
       const now = new Date();
       const expiredAt = new Date(now.getTime() + 15 * 60 * 1000).toISOString();
 
-      const channel = paymentChannel || 'qris';
-      const selectedMethod = (db.settings.paymentMethods || []).find(m => m.id === channel || m.code === channel);
       let qrBase64 = '';
       let qrPayload = '';
       let arexanspayTrxId = '';
-      let bankName = selectedMethod?.name || (channel === 'qris' ? 'QRIS ALL PAYMENT (GPN)' : channel.toUpperCase());
-      let accountNumber = selectedMethod?.accountNumber || (selectedMethod?.category === 'bank' ? '8735091823' : (selectedMethod?.category === 'ewallet' ? '081234567890' : 'QRIS STATIS MAWWWHUB'));
-      let accountHolder = selectedMethod?.accountHolder || 'MawwwHub Roblox Store';
-
-      const arexConfig = db.settings.arexanspay;
+      let bankName = selectedMethod.name;
+      let accountNumber = (selectedMethod.accountNumber || '').trim();
+      let accountHolder = (selectedMethod.accountHolder || '').trim() || db.settings.brandName || 'MawwwHub Store';
       let usedRealGateway = false;
 
-      if (arexConfig.apiKey && arexConfig.apiKey.trim().length > 10) {
+      if (gatewayConfigured) {
         try {
           const createUrl = arexConfig.apiUrl.replace(/\/$/, '') + '/api/v1/create';
           const payload = {
             base_amount: pkg.price,
-            payment_channel: selectedMethod?.code || channel,
+            payment_channel: selectedMethod.code || channel,
             qris_id: arexConfig.qrisId,
             number_id: arexConfig.numberId || 1
           };
@@ -424,7 +528,7 @@ export function createExpressApp() {
               'X-QRIS-ID': arexConfig.qrisId
             },
             body: JSON.stringify(payload),
-            signal: AbortSignal.timeout(3500)
+            signal: AbortSignal.timeout(5000)
           });
 
           if (axResponse.ok) {
@@ -440,25 +544,55 @@ export function createExpressApp() {
             }
           }
         } catch (gatewayErr) {
-          console.warn("ArexansPay call failed, falling back to local payment handler:", gatewayErr);
+          console.warn("ArexansPay call failed:", gatewayErr);
         }
       }
 
-      if (!qrBase64) {
-        const dummyQrisPayload = qrPayload || `00020101021226580016ID.CO.MAWWWHUB.WWW01189360091437105260220215${trxId}520458125303360540${totalAmount}5802ID5912MAWWWHUB6007JAKARTA62070703A016304ABCD`;
-        qrPayload = dummyQrisPayload;
-        try {
-          qrBase64 = await QRCode.toDataURL(dummyQrisPayload, {
-            errorCorrectionLevel: 'H',
-            margin: 2,
-            width: 320,
-            color: {
-              dark: '#1e0836',
-              light: '#ffffff'
-            }
-          });
-        } catch (e) {
-          console.error("QR Code generation error:", e);
+      if (!simulationEnabled) {
+        // MODE LIVE (Simulasi Dinonaktifkan):
+        // Dilarang keras menampilkan QRIS palsu atau nomor e-wallet/bank palsu!
+        if (selectedMethod.category === 'qris') {
+          if (qrPayload && !qrBase64) {
+            try {
+              qrBase64 = await QRCode.toDataURL(qrPayload, {
+                errorCorrectionLevel: 'H',
+                margin: 2,
+                width: 320,
+                color: { dark: '#1e0836', light: '#ffffff' }
+              });
+            } catch (e) {}
+          }
+          if (!qrBase64) {
+            return res.status(400).json({
+              success: false,
+              message: "Gagal menerbitkan QRIS dari Payment Gateway ArexansPay (arexanspay.my.id). Pastikan API Key & QRIS ID di /dev sudah valid dan server ArexansPay aktif."
+            });
+          }
+        } else {
+          // E-Wallet atau Bank Transfer pada Mode Live: wajib memiliki nomor tujuan asli
+          if (!accountNumber || DUMMY_ACCOUNT_NUMBERS.includes(accountNumber)) {
+            return res.status(400).json({
+              success: false,
+              message: "Nomor rekening / e-wallet untuk metode ini belum diisi oleh developer di /dev."
+            });
+          }
+        }
+      } else {
+        // MODE SIMULASI (Uji Coba Aktif):
+        if (selectedMethod.category === 'qris' && !qrBase64) {
+          const simPayload = qrPayload || `SIMULASI-QRIS-MAWWWHUB-${trxId}-${totalAmount}`;
+          qrPayload = simPayload;
+          try {
+            qrBase64 = await QRCode.toDataURL(simPayload, {
+              errorCorrectionLevel: 'H',
+              margin: 2,
+              width: 320,
+              color: { dark: '#1e0836', light: '#ffffff' }
+            });
+          } catch (e) {}
+        } else if (selectedMethod.category !== 'qris' && !accountNumber) {
+          accountNumber = 'SIMULASI-TEST-ONLY';
+          accountHolder = 'Mode Simulasi (Jangan Transfer)';
         }
       }
 
@@ -605,6 +739,14 @@ export function createExpressApp() {
   api.post('/transactions/:id/simulate-pay', (req: Request, res: Response) => {
     const { id } = req.params;
     const db = readDatabase();
+
+    if (!(db.settings.arexanspay?.enableSimulation ?? false)) {
+      return res.status(403).json({
+        success: false,
+        message: "Mode Simulasi sedang dinonaktifkan oleh developer di /dev."
+      });
+    }
+
     const trx = db.transactions.find(t => t.id === id);
 
     if (!trx) {

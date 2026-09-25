@@ -103,7 +103,7 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
   const [isTestingGateway, setIsTestingGateway] = useState(false);
 
   // Test Raw Loader Endpoint
-  const [rawTestKey, setRawTestKey] = useState('MWH-DEMO-LIFETIME-DEVKEY');
+  const [rawTestKey, setRawTestKey] = useState('');
   const [rawTestOutput, setRawTestOutput] = useState('');
   const [isTestingRaw, setIsTestingRaw] = useState(false);
 
@@ -226,27 +226,27 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
 
   const handleResetDefaultMethods = () => {
     if (!settings) return;
-    if (confirm("Reset semua metode pembayaran ke daftar lengkap ArexansPay (QRIS, DANA, GoPay, OVO, ShopeePay, LinkAja, BCA, BRI, Mandiri, BNI, SeaBank, BSI, Permata)?")) {
+    if (confirm("Reset daftar metode pembayaran ke daftar saluran standar ArexansPay (tanpa nomor rekening/e-wallet dummy)?")) {
       const defaultMethods: PaymentMethodConfig[] = [
         { id: 'qris', name: 'QRIS All Payment (GPN)', code: 'qris', category: 'qris', instructions: 'Scan QRIS dengan GoPay, OVO, DANA, ShopeePay, LinkAja, BCA, Mandiri, BRI, BNI atau aplikasi m-Banking manapun.', isActive: true, isDefault: true },
-        { id: 'dana', name: 'DANA Instant', code: 'dana', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', instructions: 'Transfer ke nomor akun DANA di atas. Masukkan nominal tepat beserta kode unik agar otomatis terkonfirmasi.', isActive: true },
-        { id: 'gopay', name: 'GoPay / Gojek', code: 'gopay', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', instructions: 'Transfer saldo GoPay ke nomor di atas. Pembayaran terverifikasi otomatis.', isActive: true },
-        { id: 'ovo', name: 'OVO Cash', code: 'ovo', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', instructions: 'Buka aplikasi OVO dan transfer ke nomor di atas sesuai total pembayaran.', isActive: true },
-        { id: 'shopeepay', name: 'ShopeePay', code: 'shopeepay', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', instructions: 'Transfer ShopeePay ke nomor di atas dengan nominal yang tepat.', isActive: true },
-        { id: 'linkaja', name: 'LinkAja', code: 'linkaja', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', instructions: 'Transfer via aplikasi LinkAja ke nomor tertera.', isActive: false },
-        { id: 'bank_bca', name: 'Bank Central Asia (BCA)', code: 'bca', category: 'bank', accountNumber: '8735091823', accountHolder: 'MawwwHub Store', instructions: 'Transfer via m-BCA atau KlikBCA. Wajib transfer sesuai nominal hingga 3 digit kode unik.', isActive: true },
-        { id: 'bank_bri', name: 'Bank Rakyat Indonesia (BRI)', code: 'bri', category: 'bank', accountNumber: '012901092839501', accountHolder: 'MawwwHub Store', instructions: 'Transfer via BRImo atau ATM BRI dengan nominal pas termasuk kode unik.', isActive: true },
-        { id: 'bank_mandiri', name: 'Bank Mandiri (Livin)', code: 'mandiri', category: 'bank', accountNumber: '1370019284950', accountHolder: 'MawwwHub Store', instructions: 'Transfer via Livin by Mandiri. Transfer tepat sesuai kode unik.', isActive: true },
-        { id: 'bank_bni', name: 'Bank Negara Indonesia (BNI)', code: 'bni', category: 'bank', accountNumber: '0981726481', accountHolder: 'MawwwHub Store', instructions: 'Transfer via BNI Mobile Banking dengan nominal tepat.', isActive: true },
-        { id: 'bank_seabank', name: 'SeaBank (Transfer Gratis)', code: 'seabank', category: 'bank', accountNumber: '901928475829', accountHolder: 'MawwwHub Store', instructions: 'Bebas biaya admin transfer dari e-wallet/bank lain ke rekening SeaBank ini.', isActive: true },
-        { id: 'bank_bsi', name: 'Bank Syariah Indonesia (BSI)', code: 'bsi', category: 'bank', accountNumber: '7192837495', accountHolder: 'MawwwHub Store', instructions: 'Transfer via BSI Mobile. Transfer nominal tepat untuk aktivasi instan.', isActive: true },
-        { id: 'bank_permata', name: 'Bank Permata', code: 'permata', category: 'bank', accountNumber: '49281729384', accountHolder: 'MawwwHub Store', instructions: 'Transfer via PermataMobile X atau ATM Permata.', isActive: false }
+        { id: 'dana', name: 'DANA Instant', code: 'dana', category: 'ewallet', accountNumber: '', accountHolder: '', instructions: 'Transfer ke nomor akun DANA di atas. Masukkan nominal tepat beserta kode unik agar otomatis terkonfirmasi.', isActive: true },
+        { id: 'gopay', name: 'GoPay / Gojek', code: 'gopay', category: 'ewallet', accountNumber: '', accountHolder: '', instructions: 'Transfer saldo GoPay ke nomor di atas. Pembayaran terverifikasi otomatis.', isActive: true },
+        { id: 'ovo', name: 'OVO Cash', code: 'ovo', category: 'ewallet', accountNumber: '', accountHolder: '', instructions: 'Buka aplikasi OVO dan transfer ke nomor di atas sesuai total pembayaran.', isActive: true },
+        { id: 'shopeepay', name: 'ShopeePay', code: 'shopeepay', category: 'ewallet', accountNumber: '', accountHolder: '', instructions: 'Transfer ShopeePay ke nomor di atas dengan nominal yang tepat.', isActive: true },
+        { id: 'linkaja', name: 'LinkAja', code: 'linkaja', category: 'ewallet', accountNumber: '', accountHolder: '', instructions: 'Transfer via aplikasi LinkAja ke nomor tertera.', isActive: false },
+        { id: 'bank_bca', name: 'Bank Central Asia (BCA)', code: 'bca', category: 'bank', accountNumber: '', accountHolder: '', instructions: 'Transfer via m-BCA atau KlikBCA. Wajib transfer sesuai nominal hingga 3 digit kode unik.', isActive: true },
+        { id: 'bank_bri', name: 'Bank Rakyat Indonesia (BRI)', code: 'bri', category: 'bank', accountNumber: '', accountHolder: '', instructions: 'Transfer via BRImo atau ATM BRI dengan nominal pas termasuk kode unik.', isActive: true },
+        { id: 'bank_mandiri', name: 'Bank Mandiri (Livin)', code: 'mandiri', category: 'bank', accountNumber: '', accountHolder: '', instructions: 'Transfer via Livin by Mandiri. Transfer tepat sesuai kode unik.', isActive: true },
+        { id: 'bank_bni', name: 'Bank Negara Indonesia (BNI)', code: 'bni', category: 'bank', accountNumber: '', accountHolder: '', instructions: 'Transfer via BNI Mobile Banking dengan nominal tepat.', isActive: true },
+        { id: 'bank_seabank', name: 'SeaBank (Transfer Gratis)', code: 'seabank', category: 'bank', accountNumber: '', accountHolder: '', instructions: 'Bebas biaya admin transfer dari e-wallet/bank lain ke rekening SeaBank ini.', isActive: true },
+        { id: 'bank_bsi', name: 'Bank Syariah Indonesia (BSI)', code: 'bsi', category: 'bank', accountNumber: '', accountHolder: '', instructions: 'Transfer via BSI Mobile. Transfer nominal tepat untuk aktivasi instan.', isActive: true },
+        { id: 'bank_permata', name: 'Bank Permata', code: 'permata', category: 'bank', accountNumber: '', accountHolder: '', instructions: 'Transfer via PermataMobile X atau ATM Permata.', isActive: false }
       ];
       setSettings({
         ...settings,
         paymentMethods: defaultMethods
       });
-      alert("Metode pembayaran telah di-reset ke standar ArexansPay. Klik 'Simpan Gateway' untuk menyimpan perubahan permanen.");
+      alert("Metode pembayaran telah di-reset (kosong tanpa nomor dummy). Silakan isi nomor rekening/e-wallet asli Anda lalu klik 'Simpan Gateway'.");
     }
   };
 
@@ -1089,6 +1089,74 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
     }
   };
 
+  // Clear All Transactions
+  const handleClearAllTransactions = async () => {
+    if (!confirm('Hapus SEMUA riwayat transaksi pembelian? Tindakan ini tidak dapat dibatalkan.')) return;
+    try {
+      const res = await fetch('/api/admin/transactions', {
+        method: 'DELETE',
+        headers: { 'x-admin-token': token }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setTransactions([]);
+        loadAllAdminData(token);
+        setSaveSuccessMsg(data.message || 'Semua transaksi berhasil dihapus!');
+        setTimeout(() => setSaveSuccessMsg(''), 4000);
+      } else {
+        setSaveErrorMsg(data.message || 'Gagal menghapus transaksi');
+      }
+    } catch (e: any) {
+      setSaveErrorMsg('Error: ' + e.message);
+    }
+  };
+
+  // Clear All Keys
+  const handleClearAllKeys = async () => {
+    if (!confirm('Hapus SEMUA license key yang telah diterbitkan? Tindakan ini tidak dapat dibatalkan.')) return;
+    try {
+      const res = await fetch('/api/admin/keys', {
+        method: 'DELETE',
+        headers: { 'x-admin-token': token }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setKeys([]);
+        loadAllAdminData(token);
+        setSaveSuccessMsg(data.message || 'Semua license key berhasil dihapus!');
+        setTimeout(() => setSaveSuccessMsg(''), 4000);
+      } else {
+        setSaveErrorMsg(data.message || 'Gagal menghapus key');
+      }
+    } catch (e: any) {
+      setSaveErrorMsg('Error: ' + e.message);
+    }
+  };
+
+  // Reset All Database Data
+  const handleResetAllData = async () => {
+    if (!confirm('PERINGATAN: Hapus SEMUA data (semua transaksi, semua license key, kredensial ArexansPay, serta nomor rekening/e-wallet) dan nonaktifkan simulasi?')) return;
+    try {
+      const res = await fetch('/api/admin/reset-data', {
+        method: 'POST',
+        headers: { 'x-admin-token': token }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setKeys([]);
+        setTransactions([]);
+        if (data.data) setSettings(data.data);
+        loadAllAdminData(token);
+        setSaveSuccessMsg(data.message || 'Semua data berhasil dihapus bersih!');
+        setTimeout(() => setSaveSuccessMsg(''), 4000);
+      } else {
+        setSaveErrorMsg(data.message || 'Gagal mereset data');
+      }
+    } catch (e: any) {
+      setSaveErrorMsg('Error: ' + e.message);
+    }
+  };
+
   // Test ArexansPay Gateway connection
   const handleTestArexansPay = async () => {
     if (!settings) return;
@@ -1312,6 +1380,15 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
             )}
 
             <button
+              onClick={handleResetAllData}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-xs bg-rose-950/70 hover:bg-rose-900 text-rose-200 border border-rose-700/50 transition active:scale-95"
+              title="Hapus Semua Data (Transaksi, Key, & Reset Payment Gateway)"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+              <span className="hidden md:inline">Hapus Semua Data</span>
+            </button>
+
+            <button
               onClick={handleSaveSettings}
               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold text-xs bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-900/40 transition active:scale-95"
             >
@@ -1477,18 +1554,29 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
 
             {/* Transactions Table */}
             <div className="rounded-2xl bg-[#120726] border border-purple-900/60 p-5 shadow-xl">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                 <div>
                   <h3 className="text-sm font-bold text-white">Daftar Transaksi Pembelian Terbaru</h3>
                   <p className="text-xs text-purple-300/70">Dipantau real time melalui payment listener ArexansPay</p>
                 </div>
-                <button
-                  onClick={() => loadAllAdminData(token)}
-                  className="px-3 py-1.5 rounded-lg bg-purple-950 hover:bg-purple-900 text-purple-300 text-xs font-semibold flex items-center gap-1.5 border border-purple-800/40"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  <span>Refresh</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  {transactions.length > 0 && (
+                    <button
+                      onClick={handleClearAllTransactions}
+                      className="px-3 py-1.5 rounded-lg bg-red-950/60 hover:bg-red-900 text-red-300 text-xs font-semibold flex items-center gap-1.5 border border-red-800/40 transition"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Hapus Semua Transaksi</span>
+                    </button>
+                  )}
+                  <button
+                    onClick={() => loadAllAdminData(token)}
+                    className="px-3 py-1.5 rounded-lg bg-purple-950 hover:bg-purple-900 text-purple-300 text-xs font-semibold flex items-center gap-1.5 border border-purple-800/40"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Refresh</span>
+                  </button>
+                </div>
               </div>
 
               {transactions.length === 0 ? (
@@ -2283,6 +2371,41 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
                 </div>
               </div>
 
+              {/* Status Integrasi ArexansPay Banner */}
+              {(() => {
+                const isGatewayReady = Boolean(
+                  settings.arexanspay.apiUrl?.trim() &&
+                  settings.arexanspay.apiKey?.trim() &&
+                  settings.arexanspay.apiKey.trim().length >= 10
+                );
+                const isSim = Boolean(settings.arexanspay.enableSimulation);
+                return (
+                  <div className={`p-4 rounded-xl border text-xs flex items-start gap-3 ${
+                    isGatewayReady
+                      ? 'bg-emerald-950/30 border-emerald-600/50 text-emerald-200'
+                      : isSim
+                      ? 'bg-amber-950/30 border-amber-600/50 text-amber-200'
+                      : 'bg-rose-950/40 border-rose-600/50 text-rose-200'
+                  }`}>
+                    <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <div className="font-bold">
+                        {isGatewayReady
+                          ? '✓ Integrasi ArexansPay Aktif & Terkonfigurasi'
+                          : isSim
+                          ? 'Mode Simulasi Aktif (Integrasi ArexansPay Belum Diisi)'
+                          : 'Metode Pembayaran Disembunyikan dari Publik (Simulasi Nonaktif & ArexansPay Belum Diisi)'}
+                      </div>
+                      <p className="text-[11px] opacity-90 leading-relaxed">
+                        {isGatewayReady
+                          ? 'API Key arexanspay.my.id sudah terisi. Metode QRIS akan tampil jika QRIS ID diisi, dan E-Wallet / Bank akan tampil jika nomor rekening/e-wallet tujuan sudah diisi.'
+                          : 'Jika Mode Simulasi dinonaktifkan, seluruh metode pembayaran (QRIS, Nomor E-Wallet, dan Rekening Bank) tidak akan muncul di halaman checkout pembeli sampai Anda mengisi API Key integrasi arexanspay.my.id beserta QRIS ID / Nomor Rekening di bawah ini.'}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 <div>
                   <label className="block text-purple-200 font-semibold mb-1">
@@ -2299,7 +2422,7 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
                     className="w-full px-3.5 py-2.5 rounded-xl bg-[#080214] border border-purple-800 text-white font-mono-code"
                   />
                   <span className="text-[10px] text-purple-400/60 mt-1 block">
-                    Default: https://arexanspay.my.id atau domain server Anda
+                    Default: https://arexanspay.my.id
                   </span>
                 </div>
 
@@ -2314,11 +2437,11 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
                       ...settings,
                       arexanspay: { ...settings.arexanspay, apiKey: e.target.value }
                     })}
-                    placeholder="arexanspay_07365360dc0f8af09d084ae8be829ce8499eca3f95c33bb0cfe3608e4aea9a44"
+                    placeholder="Masukkan X-API-Key dari dashboard arexanspay.my.id"
                     className="w-full px-3.5 py-2.5 rounded-xl bg-[#080214] border border-purple-800 text-white font-mono-code text-[11px]"
                   />
                   <span className="text-[10px] text-purple-400/60 mt-1 block">
-                    Header X-API-Key toko Anda dari dashboard ArexansPay
+                    Wajib diisi agar metode pembayaran tampil saat Mode Simulasi nonaktif
                   </span>
                 </div>
 
@@ -2333,11 +2456,11 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
                       ...settings,
                       arexanspay: { ...settings.arexanspay, qrisId: e.target.value }
                     })}
-                    placeholder="axspay-na49b8c-ec96-41dc-a4e2-1293e755a81h"
+                    placeholder="Masukkan X-QRIS-ID dari dashboard arexanspay.my.id"
                     className="w-full px-3.5 py-2.5 rounded-xl bg-[#080214] border border-purple-800 text-white font-mono-code"
                   />
                   <span className="text-[10px] text-purple-400/60 mt-1 block">
-                    QRIS ID untuk menerima pembayaran QRIS Statis toko
+                    Wajib diisi untuk menampilkan metode pembayaran QRIS saat Simulasi nonaktif
                   </span>
                 </div>
 
@@ -2566,12 +2689,14 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
                             </label>
                           </div>
 
-                          {/* Account details */}
+                           {/* Account details */}
                           {!isQris && (
                             <div className="p-2.5 rounded-lg bg-[#0e0420] border border-purple-900/60 text-[11px] space-y-1">
                               <div className="flex justify-between font-mono-code">
                                 <span className="text-purple-400/80">Nomor:</span>
-                                <span className="font-bold text-cyan-300">{method.accountNumber || '-'}</span>
+                                <span className={`font-bold ${method.accountNumber ? 'text-cyan-300' : 'text-rose-400 italic'}`}>
+                                  {method.accountNumber || 'Belum diisi'}
+                                </span>
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-purple-400/80">Atas Nama:</span>
@@ -2582,7 +2707,9 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
 
                           {isQris && (
                             <div className="p-2 rounded-lg bg-[#0e0420] border border-purple-900/60 text-[11px] text-purple-300/80">
-                              Menggunakan Barcode QRIS Statis toko ArexansPay.
+                              {settings.arexanspay.qrisId
+                                ? `QRIS ID: ${settings.arexanspay.qrisId}`
+                                : 'QRIS ID belum diisi di konfigurasi ArexansPay di atas.'}
                             </div>
                           )}
 
@@ -2849,18 +2976,29 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
 
             {/* Issued Keys Table */}
             <div className="rounded-2xl bg-[#120726] border border-purple-900/60 p-5 shadow-xl">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                 <div>
                   <h3 className="text-sm font-bold text-white">Daftar Semua Key yang Diterbitkan</h3>
                   <p className="text-xs text-purple-300/70">Key aktif, kadaluwarsa, dan status HWID pengguna</p>
                 </div>
-                <button
-                  onClick={() => loadAllAdminData(token)}
-                  className="px-3 py-1.5 rounded-lg bg-purple-950 hover:bg-purple-900 text-purple-300 text-xs font-semibold flex items-center gap-1.5 border border-purple-800/40"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  <span>Refresh</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  {keys.length > 0 && (
+                    <button
+                      onClick={handleClearAllKeys}
+                      className="px-3 py-1.5 rounded-lg bg-red-950/60 hover:bg-red-900 text-red-300 text-xs font-semibold flex items-center gap-1.5 border border-red-800/40 transition"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Hapus Semua Key</span>
+                    </button>
+                  )}
+                  <button
+                    onClick={() => loadAllAdminData(token)}
+                    className="px-3 py-1.5 rounded-lg bg-purple-950 hover:bg-purple-900 text-purple-300 text-xs font-semibold flex items-center gap-1.5 border border-purple-800/40"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Refresh</span>
+                  </button>
+                </div>
               </div>
 
               {keys.length === 0 ? (
@@ -3175,7 +3313,7 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
                   <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
                     <input
                       type="checkbox"
-                      checked={settings.arexanspay.enableSimulation ?? true}
+                      checked={settings.arexanspay.enableSimulation ?? false}
                       onChange={(e) => setSettings({
                         ...settings,
                         arexanspay: { ...settings.arexanspay, enableSimulation: e.target.checked }

@@ -110,6 +110,7 @@ export interface AppPublicSettings {
   paymentMethods: PaymentMethodConfig[];
   defaultChannel: string;
   simulationEnabled: boolean;
+  gatewayConfigured?: boolean;
   apiBase: string;
 }
 
