@@ -171,8 +171,8 @@ export const defaultPaymentMethods: PaymentMethodConfig[] = [
     name: 'DANA Instant',
     code: 'dana',
     category: 'ewallet',
-    accountNumber: '',
-    accountHolder: '',
+    accountNumber: '081234567890',
+    accountHolder: 'MawwwHub Store',
     instructions: 'Transfer ke nomor akun DANA di atas. Masukkan nominal tepat beserta kode unik agar otomatis terkonfirmasi.',
     isActive: true
   },
@@ -181,8 +181,8 @@ export const defaultPaymentMethods: PaymentMethodConfig[] = [
     name: 'GoPay / Gojek',
     code: 'gopay',
     category: 'ewallet',
-    accountNumber: '',
-    accountHolder: '',
+    accountNumber: '081234567890',
+    accountHolder: 'MawwwHub Store',
     instructions: 'Transfer saldo GoPay ke nomor di atas. Pembayaran terverifikasi otomatis.',
     isActive: true
   },
@@ -191,8 +191,8 @@ export const defaultPaymentMethods: PaymentMethodConfig[] = [
     name: 'OVO Cash',
     code: 'ovo',
     category: 'ewallet',
-    accountNumber: '',
-    accountHolder: '',
+    accountNumber: '081234567890',
+    accountHolder: 'MawwwHub Store',
     instructions: 'Buka aplikasi OVO dan transfer ke nomor di atas sesuai total pembayaran.',
     isActive: true
   },
@@ -201,8 +201,8 @@ export const defaultPaymentMethods: PaymentMethodConfig[] = [
     name: 'ShopeePay',
     code: 'shopeepay',
     category: 'ewallet',
-    accountNumber: '',
-    accountHolder: '',
+    accountNumber: '081234567890',
+    accountHolder: 'MawwwHub Store',
     instructions: 'Transfer ShopeePay ke nomor di atas dengan nominal yang tepat.',
     isActive: true
   },
@@ -211,8 +211,8 @@ export const defaultPaymentMethods: PaymentMethodConfig[] = [
     name: 'LinkAja',
     code: 'linkaja',
     category: 'ewallet',
-    accountNumber: '',
-    accountHolder: '',
+    accountNumber: '081234567890',
+    accountHolder: 'MawwwHub Store',
     instructions: 'Transfer via aplikasi LinkAja ke nomor tertera.',
     isActive: false
   },
@@ -221,8 +221,8 @@ export const defaultPaymentMethods: PaymentMethodConfig[] = [
     name: 'Bank Central Asia (BCA)',
     code: 'bca',
     category: 'bank',
-    accountNumber: '',
-    accountHolder: '',
+    accountNumber: '8735091823',
+    accountHolder: 'MawwwHub Store',
     instructions: 'Transfer via m-BCA atau KlikBCA. Wajib transfer sesuai nominal hingga 3 digit kode unik.',
     isActive: true
   },
@@ -231,8 +231,8 @@ export const defaultPaymentMethods: PaymentMethodConfig[] = [
     name: 'Bank Rakyat Indonesia (BRI)',
     code: 'bri',
     category: 'bank',
-    accountNumber: '',
-    accountHolder: '',
+    accountNumber: '012901092839501',
+    accountHolder: 'MawwwHub Store',
     instructions: 'Transfer via BRImo atau ATM BRI dengan nominal pas termasuk kode unik.',
     isActive: true
   },
@@ -241,8 +241,8 @@ export const defaultPaymentMethods: PaymentMethodConfig[] = [
     name: 'Bank Mandiri (Livin)',
     code: 'mandiri',
     category: 'bank',
-    accountNumber: '',
-    accountHolder: '',
+    accountNumber: '1370019284950',
+    accountHolder: 'MawwwHub Store',
     instructions: 'Transfer via Livin by Mandiri. Transfer tepat sesuai kode unik.',
     isActive: true
   },
@@ -251,8 +251,8 @@ export const defaultPaymentMethods: PaymentMethodConfig[] = [
     name: 'Bank Negara Indonesia (BNI)',
     code: 'bni',
     category: 'bank',
-    accountNumber: '',
-    accountHolder: '',
+    accountNumber: '0981726481',
+    accountHolder: 'MawwwHub Store',
     instructions: 'Transfer via BNI Mobile Banking dengan nominal tepat.',
     isActive: true
   },
@@ -261,8 +261,8 @@ export const defaultPaymentMethods: PaymentMethodConfig[] = [
     name: 'SeaBank (Transfer Gratis)',
     code: 'seabank',
     category: 'bank',
-    accountNumber: '',
-    accountHolder: '',
+    accountNumber: '901928475829',
+    accountHolder: 'MawwwHub Store',
     instructions: 'Bebas biaya admin transfer dari e-wallet/bank lain ke rekening SeaBank ini.',
     isActive: true
   },
@@ -271,8 +271,8 @@ export const defaultPaymentMethods: PaymentMethodConfig[] = [
     name: 'Bank Syariah Indonesia (BSI)',
     code: 'bsi',
     category: 'bank',
-    accountNumber: '',
-    accountHolder: '',
+    accountNumber: '7192837495',
+    accountHolder: 'MawwwHub Store',
     instructions: 'Transfer via BSI Mobile. Transfer nominal tepat untuk aktivasi instan.',
     isActive: true
   },
@@ -281,8 +281,8 @@ export const defaultPaymentMethods: PaymentMethodConfig[] = [
     name: 'Bank Permata',
     code: 'permata',
     category: 'bank',
-    accountNumber: '',
-    accountHolder: '',
+    accountNumber: '49281729384',
+    accountHolder: 'MawwwHub Store',
     instructions: 'Transfer via PermataMobile X atau ATM Permata.',
     isActive: false
   }
@@ -922,11 +922,11 @@ loadstring(game:HttpGet("{API_BASE}/api/raw/mawwwhub?key=" .. _G.MawwwHubKey))()
   paymentMethods: defaultPaymentMethods,
   arexanspay: {
     apiUrl: "https://arexanspay.my.id",
-    apiKey: "",
-    qrisId: "",
-    webhookSecret: "",
+    apiKey: "arexanspay_07365360dc0f8af09d084ae8be829ce8499eca3f95c33bb0cfe3608e4aea9a44",
+    qrisId: "axspay-na49b8c-ec96-41dc-a4e2-1293e755a81h",
+    webhookSecret: "WEBHOOK_KEY_TOKO_ANDA",
     numberId: 1,
-    enableSimulation: false,
+    enableSimulation: true,
     defaultChannel: "qris"
   },
   packages: [
@@ -1027,37 +1027,14 @@ export function readDatabase(): DatabaseSchema {
       if (!data.settings.paymentMethods || !Array.isArray(data.settings.paymentMethods) || data.settings.paymentMethods.length === 0) {
         data.settings.paymentMethods = JSON.parse(JSON.stringify(defaultPaymentMethods));
         modified = true;
-      } else {
-        // Strip legacy dummy account numbers & holders
-        data.settings.paymentMethods = data.settings.paymentMethods.map((m: PaymentMethodConfig) => {
-          if (m.accountNumber && DUMMY_ACCOUNT_NUMBERS.includes(m.accountNumber.trim())) {
-            modified = true;
-            return {
-              ...m,
-              accountNumber: '',
-              accountHolder: m.accountHolder === 'MawwwHub Store' ? '' : (m.accountHolder || '')
-            };
-          }
-          return m;
-        });
       }
 
       if (!data.settings.arexanspay) {
         data.settings.arexanspay = JSON.parse(JSON.stringify(defaultSettings.arexanspay));
         modified = true;
-      } else {
-        if (data.settings.arexanspay.apiKey === DUMMY_API_KEY) {
-          data.settings.arexanspay.apiKey = '';
-          modified = true;
-        }
-        if (data.settings.arexanspay.qrisId === DUMMY_QRIS_ID) {
-          data.settings.arexanspay.qrisId = '';
-          modified = true;
-        }
-        if (data.settings.arexanspay.enableSimulation === undefined) {
-          data.settings.arexanspay.enableSimulation = false;
-          modified = true;
-        }
+      } else if (data.settings.arexanspay.enableSimulation === undefined) {
+        data.settings.arexanspay.enableSimulation = true;
+        modified = true;
       }
 
       if (!data.settings.adBanner) {
@@ -1076,10 +1053,6 @@ export function readDatabase(): DatabaseSchema {
       if (!data.settings.footerText) data.settings.footerText = defaultSettings.footerText;
       if (!data.keys || !Array.isArray(data.keys)) {
         data.keys = [];
-      } else {
-        const prevLen = data.keys.length;
-        data.keys = data.keys.filter((k: IssuedKey) => k.key !== DUMMY_DEV_KEY);
-        if (data.keys.length !== prevLen) modified = true;
       }
       if (!data.transactions || !Array.isArray(data.transactions)) data.transactions = [];
       if (!data.adminTokens) data.adminTokens = ["mawwwhub-permanent-session-token"];
@@ -1093,7 +1066,7 @@ export function readDatabase(): DatabaseSchema {
     }
   }
 
-  // Create initial default DB (completely clean, no dummy keys or transactions)
+  // Create initial default DB (preserves /dev settings, no old order data)
   const initialDb: DatabaseSchema = {
     settings: JSON.parse(JSON.stringify(defaultSettings)),
     keys: [],
@@ -1112,21 +1085,25 @@ export function readDatabase(): DatabaseSchema {
 
 export function resetAllDatabaseData(): DatabaseSchema {
   const current = readDatabase();
+  // Hanya hapus data bekas orderan (transactions & keys dari orderan), jangan hapus data pengaturan di /dev
+  const nonOrderKeys = (current.keys || []).filter(k => {
+    if (k.transactionId) return false;
+    const note = (k.customerNote || '').toLowerCase();
+    if (
+      note.includes('trx-') ||
+      note.includes('simulated') ||
+      note.includes('arexanspay') ||
+      note.includes('auto issued') ||
+      note.includes('custom key approved')
+    ) {
+      return false;
+    }
+    return true;
+  });
+
   const cleanDb: DatabaseSchema = {
-    settings: {
-      ...current.settings,
-      paymentMethods: JSON.parse(JSON.stringify(defaultPaymentMethods)),
-      arexanspay: {
-        apiUrl: "https://arexanspay.my.id",
-        apiKey: "",
-        qrisId: "",
-        webhookSecret: "",
-        numberId: 1,
-        enableSimulation: false,
-        defaultChannel: "qris"
-      }
-    },
-    keys: [],
+    settings: current.settings,
+    keys: nonOrderKeys,
     transactions: [],
     adminTokens: current.adminTokens || ["mawwwhub-permanent-session-token"]
   };

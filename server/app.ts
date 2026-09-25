@@ -55,7 +55,7 @@ export function getPublicPaymentMethods(settings: AppSettings): PaymentMethodCon
     }
 
     const cleanAcc = (m.accountNumber || '').trim();
-    const hasValidAccount = cleanAcc.length > 0 && !DUMMY_ACCOUNT_NUMBERS.includes(cleanAcc);
+    const hasValidAccount = cleanAcc.length > 0;
     return gatewayReady && hasValidAccount;
   });
 }
@@ -220,12 +220,12 @@ export function createExpressApp() {
     });
   });
 
-  // 5c. Admin Reset / Hapus Semua Data
+  // 5c. Admin Reset / Hapus Data Bekas Orderan
   api.post('/admin/reset-data', requireAdmin, (_req: Request, res: Response) => {
     const cleanDb = resetAllDatabaseData();
     return res.json({
       success: true,
-      message: "Semua data (Key, Transaksi, dan Kredensial Payment Gateway) berhasil dihapus dan di-reset bersih!",
+      message: "Semua data bekas orderan (Riwayat Transaksi & Key Orderan) berhasil dihapus! Data pengaturan di /dev tetap aman.",
       data: cleanDb.settings
     });
   });
@@ -569,8 +569,8 @@ export function createExpressApp() {
             });
           }
         } else {
-          // E-Wallet atau Bank Transfer pada Mode Live: wajib memiliki nomor tujuan asli
-          if (!accountNumber || DUMMY_ACCOUNT_NUMBERS.includes(accountNumber)) {
+          // E-Wallet atau Bank Transfer pada Mode Live: wajib memiliki nomor tujuan
+          if (!accountNumber) {
             return res.status(400).json({
               success: false,
               message: "Nomor rekening / e-wallet untuk metode ini belum diisi oleh developer di /dev."

@@ -226,27 +226,27 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
 
   const handleResetDefaultMethods = () => {
     if (!settings) return;
-    if (confirm("Reset daftar metode pembayaran ke daftar saluran standar ArexansPay (tanpa nomor rekening/e-wallet dummy)?")) {
+    if (confirm("Kembalikan daftar metode pembayaran ke saluran standar ArexansPay?")) {
       const defaultMethods: PaymentMethodConfig[] = [
         { id: 'qris', name: 'QRIS All Payment (GPN)', code: 'qris', category: 'qris', instructions: 'Scan QRIS dengan GoPay, OVO, DANA, ShopeePay, LinkAja, BCA, Mandiri, BRI, BNI atau aplikasi m-Banking manapun.', isActive: true, isDefault: true },
-        { id: 'dana', name: 'DANA Instant', code: 'dana', category: 'ewallet', accountNumber: '', accountHolder: '', instructions: 'Transfer ke nomor akun DANA di atas. Masukkan nominal tepat beserta kode unik agar otomatis terkonfirmasi.', isActive: true },
-        { id: 'gopay', name: 'GoPay / Gojek', code: 'gopay', category: 'ewallet', accountNumber: '', accountHolder: '', instructions: 'Transfer saldo GoPay ke nomor di atas. Pembayaran terverifikasi otomatis.', isActive: true },
-        { id: 'ovo', name: 'OVO Cash', code: 'ovo', category: 'ewallet', accountNumber: '', accountHolder: '', instructions: 'Buka aplikasi OVO dan transfer ke nomor di atas sesuai total pembayaran.', isActive: true },
-        { id: 'shopeepay', name: 'ShopeePay', code: 'shopeepay', category: 'ewallet', accountNumber: '', accountHolder: '', instructions: 'Transfer ShopeePay ke nomor di atas dengan nominal yang tepat.', isActive: true },
-        { id: 'linkaja', name: 'LinkAja', code: 'linkaja', category: 'ewallet', accountNumber: '', accountHolder: '', instructions: 'Transfer via aplikasi LinkAja ke nomor tertera.', isActive: false },
-        { id: 'bank_bca', name: 'Bank Central Asia (BCA)', code: 'bca', category: 'bank', accountNumber: '', accountHolder: '', instructions: 'Transfer via m-BCA atau KlikBCA. Wajib transfer sesuai nominal hingga 3 digit kode unik.', isActive: true },
-        { id: 'bank_bri', name: 'Bank Rakyat Indonesia (BRI)', code: 'bri', category: 'bank', accountNumber: '', accountHolder: '', instructions: 'Transfer via BRImo atau ATM BRI dengan nominal pas termasuk kode unik.', isActive: true },
-        { id: 'bank_mandiri', name: 'Bank Mandiri (Livin)', code: 'mandiri', category: 'bank', accountNumber: '', accountHolder: '', instructions: 'Transfer via Livin by Mandiri. Transfer tepat sesuai kode unik.', isActive: true },
-        { id: 'bank_bni', name: 'Bank Negara Indonesia (BNI)', code: 'bni', category: 'bank', accountNumber: '', accountHolder: '', instructions: 'Transfer via BNI Mobile Banking dengan nominal tepat.', isActive: true },
-        { id: 'bank_seabank', name: 'SeaBank (Transfer Gratis)', code: 'seabank', category: 'bank', accountNumber: '', accountHolder: '', instructions: 'Bebas biaya admin transfer dari e-wallet/bank lain ke rekening SeaBank ini.', isActive: true },
-        { id: 'bank_bsi', name: 'Bank Syariah Indonesia (BSI)', code: 'bsi', category: 'bank', accountNumber: '', accountHolder: '', instructions: 'Transfer via BSI Mobile. Transfer nominal tepat untuk aktivasi instan.', isActive: true },
-        { id: 'bank_permata', name: 'Bank Permata', code: 'permata', category: 'bank', accountNumber: '', accountHolder: '', instructions: 'Transfer via PermataMobile X atau ATM Permata.', isActive: false }
+        { id: 'dana', name: 'DANA Instant', code: 'dana', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', instructions: 'Transfer ke nomor akun DANA di atas. Masukkan nominal tepat beserta kode unik agar otomatis terkonfirmasi.', isActive: true },
+        { id: 'gopay', name: 'GoPay / Gojek', code: 'gopay', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', instructions: 'Transfer saldo GoPay ke nomor di atas. Pembayaran terverifikasi otomatis.', isActive: true },
+        { id: 'ovo', name: 'OVO Cash', code: 'ovo', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', instructions: 'Buka aplikasi OVO dan transfer ke nomor di atas sesuai total pembayaran.', isActive: true },
+        { id: 'shopeepay', name: 'ShopeePay', code: 'shopeepay', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', instructions: 'Transfer ShopeePay ke nomor di atas dengan nominal yang tepat.', isActive: true },
+        { id: 'linkaja', name: 'LinkAja', code: 'linkaja', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', instructions: 'Transfer via aplikasi LinkAja ke nomor tertera.', isActive: false },
+        { id: 'bank_bca', name: 'Bank Central Asia (BCA)', code: 'bca', category: 'bank', accountNumber: '8735091823', accountHolder: 'MawwwHub Store', instructions: 'Transfer via m-BCA atau KlikBCA. Wajib transfer sesuai nominal hingga 3 digit kode unik.', isActive: true },
+        { id: 'bank_bri', name: 'Bank Rakyat Indonesia (BRI)', code: 'bri', category: 'bank', accountNumber: '012901092839501', accountHolder: 'MawwwHub Store', instructions: 'Transfer via BRImo atau ATM BRI dengan nominal pas termasuk kode unik.', isActive: true },
+        { id: 'bank_mandiri', name: 'Bank Mandiri (Livin)', code: 'mandiri', category: 'bank', accountNumber: '1370019284950', accountHolder: 'MawwwHub Store', instructions: 'Transfer via Livin by Mandiri. Transfer tepat sesuai kode unik.', isActive: true },
+        { id: 'bank_bni', name: 'Bank Negara Indonesia (BNI)', code: 'bni', category: 'bank', accountNumber: '0981726481', accountHolder: 'MawwwHub Store', instructions: 'Transfer via BNI Mobile Banking dengan nominal tepat.', isActive: true },
+        { id: 'bank_seabank', name: 'SeaBank (Transfer Gratis)', code: 'seabank', category: 'bank', accountNumber: '901928475829', accountHolder: 'MawwwHub Store', instructions: 'Bebas biaya admin transfer dari e-wallet/bank lain ke rekening SeaBank ini.', isActive: true },
+        { id: 'bank_bsi', name: 'Bank Syariah Indonesia (BSI)', code: 'bsi', category: 'bank', accountNumber: '7192837495', accountHolder: 'MawwwHub Store', instructions: 'Transfer via BSI Mobile. Transfer nominal tepat untuk aktivasi instan.', isActive: true },
+        { id: 'bank_permata', name: 'Bank Permata', code: 'permata', category: 'bank', accountNumber: '49281729384', accountHolder: 'MawwwHub Store', instructions: 'Transfer via PermataMobile X atau ATM Permata.', isActive: false }
       ];
       setSettings({
         ...settings,
         paymentMethods: defaultMethods
       });
-      alert("Metode pembayaran telah di-reset (kosong tanpa nomor dummy). Silakan isi nomor rekening/e-wallet asli Anda lalu klik 'Simpan Gateway'.");
+      alert("Metode pembayaran telah dikembalikan ke daftar standar. Klik 'Simpan Gateway' untuk menyimpan perubahan.");
     }
   };
 
@@ -1133,9 +1133,9 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
     }
   };
 
-  // Reset All Database Data
+  // Reset Order History Data Only (Keep /dev Settings Intact)
   const handleResetAllData = async () => {
-    if (!confirm('PERINGATAN: Hapus SEMUA data (semua transaksi, semua license key, kredensial ArexansPay, serta nomor rekening/e-wallet) dan nonaktifkan simulasi?')) return;
+    if (!confirm('Hapus semua data bekas orderan (riwayat transaksi & key hasil orderan)? Seluruh data pengaturan di /dev akan tetap aman dan tidak dihapus.')) return;
     try {
       const res = await fetch('/api/admin/reset-data', {
         method: 'POST',
@@ -1143,14 +1143,12 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
       });
       const data = await res.json();
       if (data.success) {
-        setKeys([]);
         setTransactions([]);
-        if (data.data) setSettings(data.data);
         loadAllAdminData(token);
-        setSaveSuccessMsg(data.message || 'Semua data berhasil dihapus bersih!');
+        setSaveSuccessMsg(data.message || 'Data bekas orderan berhasil dihapus bersih!');
         setTimeout(() => setSaveSuccessMsg(''), 4000);
       } else {
-        setSaveErrorMsg(data.message || 'Gagal mereset data');
+        setSaveErrorMsg(data.message || 'Gagal menghapus data orderan');
       }
     } catch (e: any) {
       setSaveErrorMsg('Error: ' + e.message);
@@ -1382,10 +1380,10 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
             <button
               onClick={handleResetAllData}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-xs bg-rose-950/70 hover:bg-rose-900 text-rose-200 border border-rose-700/50 transition active:scale-95"
-              title="Hapus Semua Data (Transaksi, Key, & Reset Payment Gateway)"
+              title="Hapus Data Bekas Orderan (Pengaturan /dev Tetap Aman)"
             >
               <Trash2 className="w-3.5 h-3.5 text-rose-400" />
-              <span className="hidden md:inline">Hapus Semua Data</span>
+              <span className="hidden md:inline">Hapus Data Orderan</span>
             </button>
 
             <button
@@ -2376,6 +2374,7 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
                 const isGatewayReady = Boolean(
                   settings.arexanspay.apiUrl?.trim() &&
                   settings.arexanspay.apiKey?.trim() &&
+                  settings.arexanspay.apiKey.trim() !== 'arexanspay_07365360dc0f8af09d084ae8be829ce8499eca3f95c33bb0cfe3608e4aea9a44' &&
                   settings.arexanspay.apiKey.trim().length >= 10
                 );
                 const isSim = Boolean(settings.arexanspay.enableSimulation);
