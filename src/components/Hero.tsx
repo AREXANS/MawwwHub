@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, ShieldCheck, Zap, ChevronDown, CheckCircle2, Lock } from 'lucide-react';
+import { Sparkles, ShieldCheck, Zap, ChevronDown, CheckCircle2, Lock, ExternalLink } from 'lucide-react';
 import { AppPublicSettings } from '../types';
 
 interface HeroProps {
@@ -43,8 +43,8 @@ export const Hero: React.FC<HeroProps> = ({
     {
       id: 'pill-4',
       icon: 'sparkles' as const,
-      title: 'Universal Support',
-      description: 'Lancar untuk Delta, Codex, Arceus X, Solara & Wave.'
+      title: 'Violence District VIP',
+      description: 'Eksklusif untuk Roblox Violence District, support PC & Mobile.'
     }
   ];
 
@@ -95,11 +95,25 @@ export const Hero: React.FC<HeroProps> = ({
 
         {/* Announcement Banner if any */}
         {announcement && (
-          <div className="mb-6 p-2.5 rounded-xl bg-purple-950/40 border border-purple-800/40 text-xs text-purple-200 flex items-center justify-center gap-2 max-w-xl mx-auto">
+          <div className="mb-4 p-2.5 rounded-xl bg-purple-950/40 border border-purple-800/40 text-xs text-purple-200 flex items-center justify-center gap-2 max-w-xl mx-auto">
             <Sparkles className="w-4 h-4 text-purple-400 flex-shrink-0" />
             <span className="truncate">{announcement}</span>
           </div>
         )}
+
+        {/* Violence District Target Game Badge */}
+        <div className="mb-6 inline-flex items-center">
+          <a
+            href="https://www.roblox.com/id/games/93978595733734/Violence-District"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-900/50 hover:bg-purple-800/70 border border-purple-500/50 text-xs font-semibold text-purple-200 transition shadow-lg shadow-purple-950/50 group"
+          >
+            <span className="text-sm">🎮</span>
+            <span>Khusus Game: <strong className="text-white">Violence District</strong></span>
+            <ExternalLink className="w-3.5 h-3.5 text-purple-400 group-hover:text-white transition" />
+          </a>
+        </div>
 
         {/* Brand Headline */}
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white mb-6 leading-tight">

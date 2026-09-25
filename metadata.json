@@ -1,6 +1,6 @@
 {
   "name": "MawwwHub - Official Roblox Script Hub & Store",
-  "description": "Website resmi penjualan script Roblox MawwwHub dengan sistem pembayaran otomatis ArexansPay QRIS dan Bank, instant key generator, dan loadstring integration.",
+  "description": "Website resmi script Roblox Violence District MawwwHub. Fitur lengkap: Auto Scavenge Scrap, ESP Entity & Items, Combat Silent Aim, Infinite Stamina, dan sistem pembayaran otomatis ArexansPay.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

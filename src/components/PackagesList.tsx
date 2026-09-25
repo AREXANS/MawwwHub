@@ -1,5 +1,5 @@
 import React from 'react';
-import { Zap, Check, Star, Clock, ShoppingCart, Sparkles, AlertCircle } from 'lucide-react';
+import { Zap, Check, Star, Clock, ShoppingCart, Sparkles, AlertCircle, ExternalLink } from 'lucide-react';
 import { ScriptPackage, AppPublicSettings } from '../types';
 
 interface PackagesListProps {
@@ -12,7 +12,12 @@ export const PackagesList: React.FC<PackagesListProps> = ({
   onSelectPackage
 }) => {
   const packages = settings?.packages || [];
-  const scriptName = settings?.gameName || "MawwwHub Roblox VIP";
+  const rawName = settings?.gameName || "Violence District";
+  // Remove any place ID or number references completely
+  const scriptName = rawName
+    .replace(/\s*\(?Place\s*ID:?[^)]*\)?/gi, '')
+    .replace(/\s*\(\d+\)/g, '')
+    .trim() || "Violence District";
   const scriptDesc = settings?.scriptDescription;
   const features = settings?.scriptFeatures || [];
 
@@ -46,10 +51,29 @@ export const PackagesList: React.FC<PackagesListProps> = ({
         <div className="mb-12 p-6 rounded-2xl bg-[#110722]/80 border border-purple-900/50 max-w-4xl mx-auto backdrop-blur-sm shadow-xl shadow-purple-950/30">
           <div className="flex flex-col md:flex-row gap-6 items-start justify-between">
             <div className="flex-1">
-              <span className="text-xs font-bold uppercase tracking-wider text-purple-400 font-mono-code">
-                Target Game & Hub Support
-              </span>
-              <h3 className="text-lg font-bold text-white mt-1 mb-2">{scriptName}</h3>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-purple-400 font-mono-code">
+                  Target Game & Hub Support
+                </span>
+                <a
+                  href="https://www.roblox.com/id/games/93978595733734/Violence-District"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-purple-300 hover:text-white bg-purple-950/60 px-2 py-0.5 rounded border border-purple-800/60 transition"
+                  title="Buka halaman game Violence District di Roblox"
+                >
+                  <span>Buka di Roblox</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-white mt-1.5 mb-2 flex items-center flex-wrap gap-2.5">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-purple-100 to-purple-300">
+                  {scriptName}
+                </span>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30 font-sans shadow-sm shadow-purple-950/40">
+                  VIP Hub
+                </span>
+              </h3>
               <p className="text-xs sm:text-sm text-purple-200/80 leading-relaxed">{scriptDesc}</p>
             </div>
             {features.length > 0 && (

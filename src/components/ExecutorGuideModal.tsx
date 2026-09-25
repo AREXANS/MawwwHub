@@ -40,7 +40,7 @@ export const ExecutorGuideModal: React.FC<ExecutorGuideModalProps> = ({ onClose 
             <div className="p-3 rounded-xl bg-purple-950/30 border border-purple-900/40 space-y-1.5 text-purple-300/80 leading-relaxed">
               <p>• <b>Executor yang didukung:</b> Delta Mobile, Codex, Arceus X Neo, Hydrogen, Fluxus.</p>
               <p>• Buka aplikasi Roblox yang sudah terpasang executor.</p>
-              <p>• Masuk ke game (misal: Blox Fruits).</p>
+              <p>• Masuk ke game Roblox: <b>Violence District</b>.</p>
               <p>• Buka menu Executor floating icon, buat tab baru.</p>
               <p>• Paste script loadstring MawwwHub yang sudah berisi key Anda.</p>
               <p>• Klik <b>Execute</b> atau tombol play.</p>
@@ -54,7 +54,7 @@ export const ExecutorGuideModal: React.FC<ExecutorGuideModalProps> = ({ onClose 
             </h4>
             <div className="p-3 rounded-xl bg-purple-950/30 border border-purple-900/40 space-y-1.5 text-purple-300/80 leading-relaxed">
               <p>• <b>Executor yang didukung:</b> Solara, Wave, Swift, Codex PC, Synapse Z.</p>
-              <p>• Buka Roblox dan executor pilihan Anda.</p>
+              <p>• Buka Roblox dan masuk ke game <b>Violence District</b>, lalu buka executor Anda.</p>
               <p>• Klik <b>Attach / Inject</b> pada executor.</p>
               <p>• Paste script loadstring MawwwHub pada editor.</p>
               <p>• Klik <b>Execute</b>. GUI MawwwHub akan langsung muncul di pojok layar.</p>
@@ -66,7 +66,7 @@ export const ExecutorGuideModal: React.FC<ExecutorGuideModalProps> = ({ onClose 
             <div>
               <span className="font-bold block">Keamanan MawwwHub:</span>
               <p className="text-[11px] text-emerald-300/80">
-                Script dilengkapi proteksi anti-tamper dan bypass signature, sehingga aman dari banned akun reguler. Gunakan fitur dengan wajar untuk pengalaman bermain terbaik.
+                Script dilengkapi proteksi anti-tamper dan bypass anti-cheat game Violence District, sehingga aman dari banned akun reguler. Gunakan fitur dengan wajar untuk pengalaman bermain terbaik.
               </p>
             </div>
           </div>

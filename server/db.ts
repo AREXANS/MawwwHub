@@ -307,8 +307,8 @@ export const defaultHeroPills: HeroPillConfig[] = [
   {
     id: 'pill-4',
     icon: 'sparkles',
-    title: 'Universal Support',
-    description: 'Lancar untuk Delta, Codex, Arceus X, Solara & Wave.'
+    title: 'Violence District VIP',
+    description: 'Eksklusif untuk Roblox Violence District, support PC & Mobile.'
   }
 ];
 
@@ -322,45 +322,48 @@ export interface DatabaseSchema {
 const defaultSettings: AppSettings = {
   brandName: "MawwwHub",
   logoUrl: "",
-  tagline: "The #1 Roblox Script Hub & Auto Delivery Store",
-  heroHeadline: "MawwwHub Script Executor & VIP Hub",
-  heroSubheadline: "Script Roblox terbaik, undetected, auto update & aktivasi key instan otomatis 24/7.",
-  statusBadgeText: "MawwwHub Status: Undetected & Online",
+  tagline: "The #1 Roblox Violence District Script Hub & Auto Delivery Store",
+  heroHeadline: "MawwwHub VIP - Violence District Script",
+  heroSubheadline: "Script resmi Roblox Violence District terlengkap: Auto Scavenge Scrap, ESP Monster & Loot, Combat Silent Aim, Infinite Stamina, dan 100% Undetected.",
+  statusBadgeText: "Violence District Hub: Undetected & Online",
   statusBadgeType: "online",
-  statusSubtext: "ArexansPay Multi-Payment Aktif",
+  statusSubtext: "VIP Script Undetected",
   heroPills: defaultHeroPills,
   adBanner: defaultAdBanner,
   quickToolsTitle: "Sudah Punya Key MawwwHub?",
-  quickToolsDesc: "Cek sisa masa aktif key Anda atau pelajari cara eksekusi script di HP Android dan PC.",
+  quickToolsDesc: "Cek sisa masa aktif key Anda atau pelajari cara eksekusi script Violence District di HP Android dan PC.",
   quickToolsBtn1Text: "Cek Validasi Key",
   quickToolsBtn2Text: "Tutorial Executor",
-  footerText: "Powered by ArexansPay Multi-Bank & QRIS Automation",
-  gameName: "Universal Support (Blox Fruits, Blade Ball, Da Hood, Brookhaven, etc)",
-  scriptDescription: "MawwwHub memberikan kemudahan bermain Roblox dengan fitur paling lengkap, auto-farm super kencang, bypass anti-cheat termutakhir, serta tampilan GUI responsif untuk PC & Mobile.",
+  footerText: "MawwwHub Violence District Edition • Powered by ArexansPay Multi-Bank & QRIS Automation",
+  gameName: "Violence District",
+  scriptDescription: "MawwwHub Violence District Edition dikembangkan khusus dan eksklusif untuk game Roblox Violence District. Dilengkapi fitur Auto Scavenge Scrap & Crates, ESP Lengkap (Entity, Enemies, Players, Items), Combat Hitbox Expander, Fullbright tanpa kegelapan, Infinite Stamina, serta GUI in-game responsif untuk Mobile (Delta/Codex) & PC (Solara/Wave).",
   scriptFeatures: [
-    "⚡ Auto Farm Level, Mastery & Quest Tercepat",
-    "🛡️ 100% Undetected & Anti-Ban Security Bypass",
-    "🎯 Aimbot, Silent Aim & Hitbox Expander",
-    "👁️ ESP Visual (Player, Chest, Fruit, NPC, Mob)",
-    "🚀 Instant Island Hop, Server Hop & Teleport",
-    "📱 Support Mobile (Delta, Fluxus, Codex, Arceus X) & PC (Solara, Wave)",
-    "🔄 Auto Update setiap kali Roblox maintenance"
+    "⚡ Auto Scavenge Scrap & Crate Opener Instan",
+    "👁️ ESP Lengkap (Monsters, Killers, Survivors, Scraps & Items)",
+    "🎯 Combat Mods: Silent Aim, Hitbox Expander & Fast Attack",
+    "🛡️ 100% Undetected & Anti-Ban Violence District Bypass",
+    "🔦 Fullbright & Anti-Fog (Tembus Gelap Total & Malam Hari)",
+    "⚡ Infinite Stamina & Speed Multiplier (Lari Tanpa Batas)",
+    "🚀 Instant Safehouse / Extraction Safezone Teleport",
+    "📱 Support Mobile (Delta, Codex, Arceus X) & PC (Solara, Wave)"
   ],
   discordUrl: "https://discord.gg/mawwwhub",
   telegramUrl: "https://t.me/mawwwhub",
   whatsappContact: "https://wa.me/6281234567890",
-  announcementText: "🔥 PROMO LAUNCHING: Dapatkan diskon 30% untuk semua paket durasi script MawwwHub hari ini!",
+  announcementText: "🔥 VIOLENCE DISTRICT VIP: Auto farm scrap, ESP monster & fullbright aktif! Diskon 30% hari ini!",
   enableOrderUsername: false,
   enableOrderWhatsapp: false,
   enableCustomKeyOrder: true,
   // Clean protected loadstring: DOES NOT leak raw HWID to public!
   loadstringTemplate: `_G.MawwwHubKey = "{KEY}"
 loadstring(game:HttpGet("{API_BASE}/api/raw/mawwwhub?key=" .. _G.MawwwHubKey))()`,
-  rawScriptBody: `-- [[ MawwwHub Official Script Hub - Ultra Mini HUD & Realtime Device Sync ]] --
+  rawScriptBody: `-- [[ MawwwHub Official Script Hub - Violence District VIP Edition ]] --
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local HttpService = game:GetService("HttpService")
 local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Lighting = game:GetService("Lighting")
 
 local Key = "{KEY}"
 local ApiBase = "{API_BASE}"
@@ -411,15 +414,22 @@ task.spawn(function()
     end)
 end)
 
-print("[MawwwHub] Key verified for: " .. LocalPlayer.Name .. " | HWID: " .. DetectedHwid)
+-- VIP Hub Load Notification
+pcall(function()
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "MawwwHub Loaded!",
+        Text = "Violence District VIP Hub aktif! Klik icon 💜 untuk buka menu.",
+        Duration = 6
+    })
+end)
 
--- Remove old UI
+-- Clean old instances
 pcall(function()
     local old = (game:GetService("CoreGui"):FindFirstChild("MawwwHub_VIP_HUD") or LocalPlayer:FindFirstChild("PlayerGui"):FindFirstChild("MawwwHub_VIP_HUD"))
     if old then old:Destroy() end
 end)
 
--- Create ScreenGui
+-- ScreenGui Setup
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "MawwwHub_VIP_HUD"
 ScreenGui.ResetOnSpawn = false
@@ -432,32 +442,30 @@ if not ScreenGui.Parent then
     ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 end
 
--- 1. Ultra Mini Floating Card (Sangat mini, hemat tempat)
+-- Mini Floating HUD Card
 local Card = Instance.new("Frame")
 Card.Name = "MiniHUD"
-Card.Size = UDim2.new(0, 205, 0, 26)
-Card.Position = UDim2.new(1, -215, 0, 14)
+Card.Size = UDim2.new(0, 240, 0, 30)
+Card.Position = UDim2.new(1, -255, 0, 16)
 Card.BackgroundColor3 = Color3.fromRGB(15, 6, 30)
-Card.BackgroundTransparency = 0.35
+Card.BackgroundTransparency = 0.25
 Card.BorderSizePixel = 0
 Card.Active = true
-Card.ClipsDescendants = true
 Card.Parent = ScreenGui
 
 local CardCorner = Instance.new("UICorner")
-CardCorner.CornerRadius = UDim.new(0, 13)
+CardCorner.CornerRadius = UDim.new(0, 15)
 CardCorner.Parent = Card
 
 local CardStroke = Instance.new("UIStroke")
 CardStroke.Color = Color3.fromRGB(168, 85, 247)
-CardStroke.Transparency = 0.4
-CardStroke.Thickness = 1.2
+CardStroke.Transparency = 0.35
+CardStroke.Thickness = 1.3
 CardStroke.Parent = Card
 
--- Green dot indicator
 local Dot = Instance.new("Frame")
-Dot.Size = UDim2.new(0, 6, 0, 6)
-Dot.Position = UDim2.new(0, 8, 0.5, -3)
+Dot.Size = UDim2.new(0, 7, 0, 7)
+Dot.Position = UDim2.new(0, 10, 0.5, -3.5)
 Dot.BackgroundColor3 = Color3.fromRGB(34, 197, 94)
 Dot.BorderSizePixel = 0
 Dot.Parent = Card
@@ -466,24 +474,35 @@ local DotCorner = Instance.new("UICorner")
 DotCorner.CornerRadius = UDim.new(1, 0)
 DotCorner.Parent = Dot
 
--- Duration & Brand Text
 local InfoLabel = Instance.new("TextLabel")
-InfoLabel.Size = UDim2.new(1, -40, 1, 0)
-InfoLabel.Position = UDim2.new(0, 18, 0, 0)
+InfoLabel.Size = UDim2.new(1, -75, 1, 0)
+InfoLabel.Position = UDim2.new(0, 22, 0, 0)
 InfoLabel.BackgroundTransparency = 1
-InfoLabel.Text = "💜 VIP: ..."
+InfoLabel.Text = "💜 Violence District VIP"
 InfoLabel.TextColor3 = Color3.fromRGB(243, 232, 255)
 InfoLabel.Font = Enum.Font.GothamBold
 InfoLabel.TextSize = 10
 InfoLabel.TextXAlignment = Enum.TextXAlignment.Left
 InfoLabel.Parent = Card
 
--- Hide / Minimize Button
+local MenuBtn = Instance.new("TextButton")
+MenuBtn.Size = UDim2.new(0, 22, 0, 22)
+MenuBtn.Position = UDim2.new(1, -48, 0.5, -11)
+MenuBtn.BackgroundColor3 = Color3.fromRGB(88, 28, 135)
+MenuBtn.Text = "☰"
+MenuBtn.TextColor3 = Color3.fromRGB(243, 232, 255)
+MenuBtn.Font = Enum.Font.GothamBold
+MenuBtn.TextSize = 11
+MenuBtn.Parent = Card
+
+local MenuBtnCorner = Instance.new("UICorner")
+MenuBtnCorner.CornerRadius = UDim.new(0, 6)
+MenuBtnCorner.Parent = MenuBtn
+
 local HideBtn = Instance.new("TextButton")
-HideBtn.Size = UDim2.new(0, 18, 0, 18)
-HideBtn.Position = UDim2.new(1, -22, 0.5, -9)
+HideBtn.Size = UDim2.new(0, 20, 0, 20)
+HideBtn.Position = UDim2.new(1, -24, 0.5, -10)
 HideBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 85)
-HideBtn.BackgroundTransparency = 0.4
 HideBtn.Text = "✕"
 HideBtn.TextColor3 = Color3.fromRGB(216, 180, 254)
 HideBtn.Font = Enum.Font.GothamBold
@@ -491,18 +510,18 @@ HideBtn.TextSize = 9
 HideBtn.Parent = Card
 
 local HideBtnCorner = Instance.new("UICorner")
-HideBtnCorner.CornerRadius = UDim.new(0, 9)
+HideBtnCorner.CornerRadius = UDim.new(0, 10)
 HideBtnCorner.Parent = HideBtn
 
--- 2. Floating Mini Pill Button (When Hidden)
+-- Floating Mini Pill (When minimized)
 local MiniPill = Instance.new("TextButton")
 MiniPill.Name = "MiniPill"
-MiniPill.Size = UDim2.new(0, 28, 0, 28)
-MiniPill.Position = UDim2.new(1, -38, 0, 14)
+MiniPill.Size = UDim2.new(0, 32, 0, 32)
+MiniPill.Position = UDim2.new(1, -42, 0, 16)
 MiniPill.BackgroundColor3 = Color3.fromRGB(20, 8, 40)
-MiniPill.BackgroundTransparency = 0.3
+MiniPill.BackgroundTransparency = 0.25
 MiniPill.Text = "💜"
-MiniPill.TextSize = 12
+MiniPill.TextSize = 14
 MiniPill.Visible = false
 MiniPill.Active = true
 MiniPill.Parent = ScreenGui
@@ -513,14 +532,305 @@ PillCorner.Parent = MiniPill
 
 local PillStroke = Instance.new("UIStroke")
 PillStroke.Color = Color3.fromRGB(168, 85, 247)
-PillStroke.Transparency = 0.35
-PillStroke.Thickness = 1.2
+PillStroke.Transparency = 0.3
+PillStroke.Thickness = 1.3
 PillStroke.Parent = MiniPill
 
--- Hide / Expand Toggle Actions
+-- Violence District Main GUI Window
+local MainWindow = Instance.new("Frame")
+MainWindow.Name = "ViolenceDistrictHub"
+MainWindow.Size = UDim2.new(0, 360, 0, 380)
+MainWindow.Position = UDim2.new(0.5, -180, 0.5, -190)
+MainWindow.BackgroundColor3 = Color3.fromRGB(13, 5, 25)
+MainWindow.BorderSizePixel = 0
+MainWindow.Visible = false
+MainWindow.Active = true
+MainWindow.ClipsDescendants = true
+MainWindow.Parent = ScreenGui
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 14)
+MainCorner.Parent = MainWindow
+
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Color = Color3.fromRGB(147, 51, 234)
+MainStroke.Thickness = 1.5
+MainStroke.Parent = MainWindow
+
+-- Window Header
+local Header = Instance.new("Frame")
+Header.Size = UDim2.new(1, 0, 0, 42)
+Header.BackgroundColor3 = Color3.fromRGB(22, 10, 42)
+Header.BorderSizePixel = 0
+Header.Parent = MainWindow
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -70, 0, 20)
+Title.Position = UDim2.new(0, 14, 0, 4)
+Title.BackgroundTransparency = 1
+Title.Text = "MawwwHub VIP • Violence District"
+Title.TextColor3 = Color3.fromRGB(243, 232, 255)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 12
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = Header
+
+local SubTitle = Instance.new("TextLabel")
+SubTitle.Size = UDim2.new(1, -70, 0, 16)
+SubTitle.Position = UDim2.new(0, 14, 0, 22)
+SubTitle.BackgroundTransparency = 1
+SubTitle.Text = "Place: 93978595733734 | Status: Undetected"
+SubTitle.TextColor3 = Color3.fromRGB(192, 132, 252)
+SubTitle.Font = Enum.Font.Gotham
+SubTitle.TextSize = 10
+SubTitle.TextXAlignment = Enum.TextXAlignment.Left
+SubTitle.Parent = Header
+
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 24, 0, 24)
+CloseBtn.Position = UDim2.new(1, -32, 0.5, -12)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(50, 15, 80)
+CloseBtn.Text = "✕"
+CloseBtn.TextColor3 = Color3.fromRGB(230, 200, 255)
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.TextSize = 11
+CloseBtn.Parent = Header
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 7)
+CloseCorner.Parent = CloseBtn
+
+-- Scroll container for toggles
+local Scroll = Instance.new("ScrollingFrame")
+Scroll.Size = UDim2.new(1, -20, 1, -54)
+Scroll.Position = UDim2.new(0, 10, 0, 48)
+Scroll.BackgroundTransparency = 1
+Scroll.BorderSizePixel = 0
+Scroll.CanvasSize = UDim2.new(0, 0, 0, 480)
+Scroll.ScrollBarThickness = 4
+Scroll.ScrollBarImageColor3 = Color3.fromRGB(147, 51, 234)
+Scroll.Parent = MainWindow
+
+local Layout = Instance.new("UIListLayout")
+Layout.Padding = UDim.new(0, 8)
+Layout.SortOrder = Enum.SortOrder.LayoutOrder
+Layout.Parent = Scroll
+
+-- Feature Toggle Helper
+local function createFeatureToggle(name, desc, onToggle)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, -6, 0, 48)
+    frame.BackgroundColor3 = Color3.fromRGB(20, 9, 38)
+    frame.BorderSizePixel = 0
+    frame.Parent = Scroll
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = frame
+
+    local titleLbl = Instance.new("TextLabel")
+    titleLbl.Size = UDim2.new(1, -65, 0, 18)
+    titleLbl.Position = UDim2.new(0, 10, 0, 6)
+    titleLbl.BackgroundTransparency = 1
+    titleLbl.Text = name
+    titleLbl.TextColor3 = Color3.fromRGB(243, 232, 255)
+    titleLbl.Font = Enum.Font.GothamBold
+    titleLbl.TextSize = 11
+    titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+    titleLbl.Parent = frame
+
+    local descLbl = Instance.new("TextLabel")
+    descLbl.Size = UDim2.new(1, -65, 0, 16)
+    descLbl.Position = UDim2.new(0, 10, 0, 24)
+    descLbl.BackgroundTransparency = 1
+    descLbl.Text = desc
+    descLbl.TextColor3 = Color3.fromRGB(192, 132, 252)
+    descLbl.Font = Enum.Font.Gotham
+    descLbl.TextSize = 9
+    descLbl.TextXAlignment = Enum.TextXAlignment.Left
+    descLbl.Parent = frame
+
+    local toggleBtn = Instance.new("TextButton")
+    toggleBtn.Size = UDim2.new(0, 44, 0, 22)
+    toggleBtn.Position = UDim2.new(1, -50, 0.5, -11)
+    toggleBtn.BackgroundColor3 = Color3.fromRGB(45, 20, 75)
+    toggleBtn.Text = "OFF"
+    toggleBtn.TextColor3 = Color3.fromRGB(168, 85, 247)
+    toggleBtn.Font = Enum.Font.GothamBold
+    toggleBtn.TextSize = 9
+    toggleBtn.Parent = frame
+
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0, 11)
+    btnCorner.Parent = toggleBtn
+
+    local enabled = false
+    toggleBtn.MouseButton1Click:Connect(function()
+        enabled = not enabled
+        if enabled then
+            toggleBtn.BackgroundColor3 = Color3.fromRGB(34, 197, 94)
+            toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            toggleBtn.Text = "ON"
+        else
+            toggleBtn.BackgroundColor3 = Color3.fromRGB(45, 20, 75)
+            toggleBtn.TextColor3 = Color3.fromRGB(168, 85, 247)
+            toggleBtn.Text = "OFF"
+        end
+        pcall(function() onToggle(enabled) end)
+    end)
+    return frame
+end
+
+-- 1. Fullbright (Violence District Anti-Darkness)
+local originalAmbient = Lighting.Ambient
+local originalFogEnd = Lighting.FogEnd
+createFeatureToggle("🔦 Fullbright & No Fog", "Hapus kegelapan & kabut hitam di Violence District", function(state)
+    if state then
+        Lighting.Ambient = Color3.fromRGB(255, 255, 255)
+        Lighting.FogEnd = 100000
+        Lighting.Brightness = 2
+    else
+        Lighting.Ambient = originalAmbient
+        Lighting.FogEnd = originalFogEnd
+        Lighting.Brightness = 1
+    end
+end)
+
+-- 2. ESP Enemies & Monsters
+local espMonstersEnabled = false
+createFeatureToggle("👁️ ESP Monsters / Enemies", "Highlight musuh, killers, dan zombie sekitar", function(state)
+    espMonstersEnabled = state
+    pcall(function()
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("Humanoid") and obj.Parent and obj.Parent ~= LocalPlayer.Character then
+                local char = obj.Parent
+                if not Players:GetPlayerFromCharacter(char) then
+                    local existing = char:FindFirstChild("MawwwMonsterESP")
+                    if state and not existing then
+                        local hl = Instance.new("Highlight")
+                        hl.Name = "MawwwMonsterESP"
+                        hl.FillColor = Color3.fromRGB(239, 68, 68)
+                        hl.OutlineColor = Color3.fromRGB(255, 255, 255)
+                        hl.FillTransparency = 0.5
+                        hl.Parent = char
+                    elseif not state and existing then
+                        existing:Destroy()
+                    end
+                end
+            end
+        end
+    end)
+end)
+
+-- 3. ESP Players / Survivors
+local espPlayersEnabled = false
+createFeatureToggle("👥 ESP Survivors / Players", "Lihat posisi player lain menembus dinding", function(state)
+    espPlayersEnabled = state
+    pcall(function()
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer and p.Character then
+                local existing = p.Character:FindFirstChild("MawwwPlayerESP")
+                if state and not existing then
+                    local hl = Instance.new("Highlight")
+                    hl.Name = "MawwwPlayerESP"
+                    hl.FillColor = Color3.fromRGB(168, 85, 247)
+                    hl.OutlineColor = Color3.fromRGB(255, 255, 255)
+                    hl.FillTransparency = 0.5
+                    hl.Parent = p.Character
+                elseif not state and existing then
+                    existing:Destroy()
+                end
+            end
+        end
+    end)
+end)
+
+-- 4. Auto Scavenge Scrap & Items
+local autoScrap = false
+createFeatureToggle("⚡ Auto Scavenge Scrap", "Ambil scrap dan item sekitar secara instan", function(state)
+    autoScrap = state
+    task.spawn(function()
+        while autoScrap do
+            pcall(function()
+                local char = LocalPlayer.Character
+                local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    for _, item in pairs(workspace:GetDescendants()) do
+                        if item:IsA("ProximityPrompt") and item.Enabled then
+                            local part = item.Parent
+                            if part and part:IsA("BasePart") then
+                                local dist = (part.Position - hrp.Position).Magnitude
+                                if dist < 25 then
+                                    fireproximityprompt(item, 0)
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+            task.wait(0.5)
+        end
+    end)
+end)
+
+-- 5. Hitbox Expander / Silent Aim for Violence District
+local hitboxEnabled = false
+createFeatureToggle("🎯 Hitbox Expander (Combat)", "Perbesar hitbox kepala musuh untuk kill mudah", function(state)
+    hitboxEnabled = state
+    pcall(function()
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("Humanoid") and obj.Parent and obj.Parent ~= LocalPlayer.Character then
+                local root = obj.Parent:FindFirstChild("HumanoidRootPart") or obj.Parent:FindFirstChild("Head")
+                if root then
+                    if state then
+                        root.Size = Vector3.new(9, 9, 9)
+                        root.Transparency = 0.7
+                        root.CanCollide = false
+                    else
+                        root.Size = Vector3.new(2, 2, 1)
+                        root.Transparency = 0
+                    end
+                end
+            end
+        end
+    end)
+end)
+
+-- 6. Infinite Stamina
+local infStamina = false
+createFeatureToggle("🏃 Infinite Stamina", "Lari tanpa kehabisan stamina di Violence District", function(state)
+    infStamina = state
+    task.spawn(function()
+        while infStamina do
+            pcall(function()
+                local char = LocalPlayer.Character
+                if char then
+                    local stamina = char:FindFirstChild("Stamina") or LocalPlayer:FindFirstChild("Stamina")
+                    if stamina and stamina:IsA("NumberValue") then
+                        stamina.Value = 100
+                    end
+                    local hum = char:FindFirstChildOfClass("Humanoid")
+                    if hum and hum.WalkSpeed < 24 then
+                        hum.WalkSpeed = 24
+                    end
+                end
+            end)
+            task.wait(0.2)
+        end
+    end)
+end)
+
+-- Window / Pill toggle interactions
+MenuBtn.MouseButton1Click:Connect(function()
+    MainWindow.Visible = not MainWindow.Visible
+end)
+
+CloseBtn.MouseButton1Click:Connect(function()
+    MainWindow.Visible = false
+end)
+
 HideBtn.MouseButton1Click:Connect(function()
     Card.Visible = false
-    MiniPill.Position = UDim2.new(Card.Position.X.Scale, Card.Position.X.Offset + (Card.AbsoluteSize.X - 30), Card.Position.Y.Scale, Card.Position.Y.Offset)
     MiniPill.Visible = true
 end)
 
@@ -529,7 +839,7 @@ MiniPill.MouseButton1Click:Connect(function()
     Card.Visible = true
 end)
 
--- Draggable implementation for both elements
+-- Draggable implementation
 local function makeDraggable(guiObject)
     local dragging, dragInput, dragStart, startPos
     guiObject.InputBegan:Connect(function(input)
@@ -559,31 +869,14 @@ end
 
 makeDraggable(Card)
 makeDraggable(MiniPill)
+makeDraggable(MainWindow)
 
--- Format remaining time helper
-local function formatRemaining(seconds)
-    if seconds <= 0 then
-        return "EXPIRED"
-    end
-    local days = math.floor(seconds / 86400)
-    local hours = math.floor((seconds % 86400) / 3600)
-    local mins = math.floor((seconds % 3600) / 60)
-    local secs = math.floor(seconds % 60)
-    if days > 0 then
-        return string.format("%dH %dJ %dM", days, hours, mins)
-    elseif hours > 0 then
-        return string.format("%dJ %dM %dS", hours, mins, secs)
-    else
-        return string.format("%dM %dS", mins, secs)
-    end
-end
-
--- Live Countdown Routine
+-- Expiration Countdown
 local isLifetime = (ExpireTimestamp == 0)
 task.spawn(function()
     while ScreenGui.Parent do
         if isLifetime then
-            InfoLabel.Text = "💜 VIP: PERMANEN"
+            InfoLabel.Text = "💜 VIP: PERMANEN (Violence District)"
             InfoLabel.TextColor3 = Color3.fromRGB(52, 211, 153)
         else
             local now = os.time()
@@ -593,7 +886,10 @@ task.spawn(function()
                 InfoLabel.TextColor3 = Color3.fromRGB(248, 113, 113)
                 Dot.BackgroundColor3 = Color3.fromRGB(239, 68, 68)
             else
-                InfoLabel.Text = "⏳ " .. formatRemaining(diff)
+                local m = math.floor((diff % 3600) / 60)
+                local s = math.floor(diff % 60)
+                local h = math.floor(diff / 3600)
+                InfoLabel.Text = string.format("⏳ %02d:%02d:%02d • Violence District", h, m, s)
                 InfoLabel.TextColor3 = Color3.fromRGB(253, 224, 71)
             end
         end
@@ -601,27 +897,7 @@ task.spawn(function()
     end
 end)
 
--- Realtime Web API Verification Sync
-task.spawn(function()
-    while ScreenGui.Parent do
-        task.wait(60)
-        pcall(function()
-            local response = game:HttpGet(ApiBase .. "/api/key/verify?key=" .. Key)
-            if response then
-                local data = HttpService:JSONDecode(response)
-                if data and data.success then
-                    if not data.valid or data.status == "expired" or data.status == "revoked" then
-                        Dot.BackgroundColor3 = Color3.fromRGB(239, 68, 68)
-                        InfoLabel.Text = "⚠️ " .. string.upper(data.status or "EXPIRED")
-                        InfoLabel.TextColor3 = Color3.fromRGB(248, 113, 113)
-                    end
-                end
-            end
-        end)
-    end
-end)
-
-print("[MawwwHub] Mini HUD loaded.")`,
+print("[MawwwHub] Violence District VIP script loaded successfully.")`,
   rawLoaderTemplate: `-- [[ MawwwHub Loader ]] --
 -- Paste kode ini di Executor Anda (Delta, Codex, Solara, Wave, dll):
 _G.MawwwHubKey = "{KEY}"
