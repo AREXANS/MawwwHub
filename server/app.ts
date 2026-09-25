@@ -107,6 +107,7 @@ export function createExpressApp() {
         announcementText: s.announcementText,
         enableOrderUsername: s.enableOrderUsername ?? false,
         enableOrderWhatsapp: s.enableOrderWhatsapp ?? false,
+        enableCustomKeyOrder: s.enableCustomKeyOrder ?? true,
         packages: s.packages.filter(p => p.isActive),
         defaultChannel: s.arexanspay.defaultChannel || 'qris',
         simulationEnabled: s.arexanspay.enableSimulation ?? true,
@@ -293,7 +294,8 @@ export function createExpressApp() {
       expiresAt = new Date(now.getTime() + trx.durationDays * 24 * 60 * 60 * 1000).toISOString();
     }
 
-    const issuedKey = generateKeyString("MWH");
+    const isCustomUnique = trx.requestedCustomKey && !db.keys.some(k => k.key.toUpperCase() === trx.requestedCustomKey!.toUpperCase());
+    const issuedKey = isCustomUnique ? trx.requestedCustomKey! : generateKeyString("MWH");
     const keyRecord: IssuedKey = {
       key: issuedKey,
       packageId: trx.packageId,
@@ -303,7 +305,7 @@ export function createExpressApp() {
       expiresAt,
       status: 'active',
       hwid: null,
-      customerNote: `Auto Issued from TRX: ${trx.id}`,
+      customerNote: trx.requestedCustomKey ? `Custom Key Approved: ${trx.id}` : `Auto Issued from TRX: ${trx.id}`,
       transactionId: trx.id,
       robloxUsername: trx.robloxUsername || "Buyer"
     };
@@ -356,12 +358,23 @@ export function createExpressApp() {
   // 10. Public Create Transaction
   api.post('/transactions/create', async (req: Request, res: Response) => {
     try {
-      const { packageId, robloxUsername, customerContact, paymentChannel } = req.body;
+      const { packageId, robloxUsername, customerContact, paymentChannel, customKey } = req.body;
       const db = readDatabase();
       const pkg = db.settings.packages.find(p => p.id === packageId && p.isActive);
 
       if (!pkg) {
         return res.status(404).json({ success: false, message: "Paket script tidak ditemukan atau sedang nonaktif." });
+      }
+
+      let cleanCustomKey: string | undefined = undefined;
+      if (customKey && typeof customKey === 'string' && customKey.trim().length > 0) {
+        cleanCustomKey = customKey.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+        if (cleanCustomKey.length < 3 || cleanCustomKey.length > 32) {
+          return res.status(400).json({ success: false, message: "Custom key harus terdiri dari 3 hingga 32 karakter (alfanumerik, tanda minus, underscore)." });
+        }
+        if (db.keys.some(k => k.key.toUpperCase() === cleanCustomKey)) {
+          return res.status(400).json({ success: false, message: `Custom key '${cleanCustomKey}' sudah digunakan oleh orang lain. Silakan pilih custom key lain yang unik.` });
+        }
       }
 
       const uniqueCode = Math.floor(Math.random() * 250) + 1;
@@ -456,6 +469,7 @@ export function createExpressApp() {
         expiredAt,
         robloxUsername: robloxUsername || "Guest",
         customerContact: customerContact || "",
+        requestedCustomKey: cleanCustomKey,
         arexanspayTrxId
       };
 
@@ -526,7 +540,8 @@ export function createExpressApp() {
             if (trx.durationDays > 0) {
               expiresAt = new Date(now.getTime() + trx.durationDays * 24 * 60 * 60 * 1000).toISOString();
             }
-            const keyString = generateKeyString("MWH");
+            const isCustomUnique = trx.requestedCustomKey && !db.keys.some(k => k.key.toUpperCase() === trx.requestedCustomKey!.toUpperCase());
+            const keyString = isCustomUnique ? trx.requestedCustomKey! : generateKeyString("MWH");
             const keyRecord: IssuedKey = {
               key: keyString,
               packageId: trx.packageId,
@@ -535,7 +550,8 @@ export function createExpressApp() {
               createdAt: now.toISOString(),
               expiresAt,
               status: 'active',
-              customerNote: `ArexansPay Verified: ${trx.id}`,
+              hwid: null,
+              customerNote: trx.requestedCustomKey ? `ArexansPay Custom Key: ${trx.id}` : `ArexansPay Verified: ${trx.id}`,
               transactionId: trx.id,
               robloxUsername: trx.robloxUsername || "Buyer"
             };
@@ -606,7 +622,8 @@ export function createExpressApp() {
       expiresAt = new Date(now.getTime() + trx.durationDays * 24 * 60 * 60 * 1000).toISOString();
     }
 
-    const keyString = generateKeyString("MWH");
+    const isCustomUnique = trx.requestedCustomKey && !db.keys.some(k => k.key.toUpperCase() === trx.requestedCustomKey!.toUpperCase());
+    const keyString = isCustomUnique ? trx.requestedCustomKey! : generateKeyString("MWH");
     const keyRecord: IssuedKey = {
       key: keyString,
       packageId: trx.packageId,
@@ -615,7 +632,8 @@ export function createExpressApp() {
       createdAt: now.toISOString(),
       expiresAt,
       status: 'active',
-      customerNote: `Simulated/Test Payment for ${trx.id}`,
+      hwid: null,
+      customerNote: trx.requestedCustomKey ? `Simulated Custom Key: ${trx.id}` : `Simulated/Test Payment for ${trx.id}`,
       transactionId: trx.id,
       robloxUsername: trx.robloxUsername || "Buyer"
     };
@@ -709,6 +727,61 @@ export function createExpressApp() {
     });
   });
 
+  // 13b. Device HWID & Roblox Username Realtime Sync Endpoint
+  api.get('/key/sync-device', (req: Request, res: Response) => {
+    const key = (req.query.key as string || '').trim().toUpperCase();
+    const player = (req.query.player as string || req.headers['roblox-username'] as string || '').trim();
+    const hwid = (req.query.hwid as string || req.headers['roblox-hwid'] as string || '').trim();
+
+    if (!key) {
+      return res.status(400).json({ success: false, message: "Parameter key diperlukan" });
+    }
+
+    const db = readDatabase();
+    const keyObj = db.keys.find(k => k.key.toUpperCase() === key);
+    if (!keyObj) {
+      return res.status(404).json({ success: false, message: "Key tidak ditemukan" });
+    }
+
+    if (keyObj.expiresAt && new Date(keyObj.expiresAt).getTime() < Date.now()) {
+      keyObj.status = 'expired';
+      writeDatabase(db);
+      return res.status(403).json({ success: false, error: "expired", message: "Key telah kedaluwarsa." });
+    }
+
+    // HWID Lock: Only 1 device allowed
+    if (db.settings.enableHwidLock && hwid) {
+      if (keyObj.hwid && keyObj.hwid !== hwid) {
+        return res.status(403).json({
+          success: false,
+          error: "hwid_mismatch",
+          message: `Key '${key}' terkunci pada HWID lain! Hanya 1 perangkat yang diizinkan terhubung. Silakan hubungi admin di ${getAppBaseUrl(req)} untuk reset HWID.`
+        });
+      }
+      if (!keyObj.hwid) {
+        keyObj.hwid = hwid;
+      }
+    }
+
+    // Auto-detect & record Roblox Username into key and linked transaction
+    if (player && player !== "Guest" && player !== "User" && player.length > 0) {
+      keyObj.robloxUsername = player;
+      if (keyObj.transactionId) {
+        const trx = db.transactions.find(t => t.id === keyObj.transactionId);
+        if (trx) trx.robloxUsername = player;
+      }
+    }
+
+    keyObj.lastUsedAt = new Date().toISOString();
+    writeDatabase(db);
+
+    return res.json({
+      success: true,
+      hwid: keyObj.hwid,
+      robloxUsername: keyObj.robloxUsername
+    });
+  });
+
   // 14. RAW CODE KEY DURATION INTEGRATION ENDPOINT
   // When clicked in a web browser directly -> Returns 404 Error Page!
   // When executed inside Roblox executor (game:HttpGet) -> Executes and returns Lua script!
@@ -716,6 +789,7 @@ export function createExpressApp() {
     const { scriptId } = req.params;
     const key = (req.query.key as string || '').trim().toUpperCase();
     const hwid = (req.query.hwid as string || req.headers['roblox-hwid'] as string || '').trim();
+    const playerParam = (req.query.player as string || req.headers['roblox-username'] as string || '').trim();
     const baseUrl = getAppBaseUrl(req);
 
     const userAgent = (req.headers['user-agent'] || '').toLowerCase();
@@ -851,17 +925,29 @@ export function createExpressApp() {
       );
     }
 
+    // HWID Enforcement: Strictly 1 device only
     if (db.settings.enableHwidLock && hwid) {
-      if (!keyObj.hwid) {
-        keyObj.hwid = hwid;
-        keyObj.lastUsedAt = new Date().toISOString();
-        writeDatabase(db);
-      } else if (keyObj.hwid !== hwid) {
+      if (keyObj.hwid && keyObj.hwid !== hwid) {
         return res.status(403).send(
-          `-- [MawwwHub Security Error]\nerror("[MawwwHub] Key '${key}' terkunci pada HWID lain! Reset HWID melalui web admin MawwwHub.")`
+          `-- [MawwwHub Security Error]\nerror("[MawwwHub] Key '${key}' terkunci pada HWID lain! Hanya 1 perangkat yang diizinkan terhubung. Silakan hubungi admin di ${baseUrl} untuk reset HWID.")`
         );
       }
+      if (!keyObj.hwid) {
+        keyObj.hwid = hwid;
+      }
     }
+
+    // Auto-detect & record Roblox Username upon script execution
+    if (playerParam && playerParam !== "Guest" && playerParam !== "User" && playerParam.length > 0) {
+      keyObj.robloxUsername = playerParam;
+      if (keyObj.transactionId) {
+        const trx = db.transactions.find(t => t.id === keyObj.transactionId);
+        if (trx) trx.robloxUsername = playerParam;
+      }
+    }
+
+    keyObj.lastUsedAt = new Date().toISOString();
+    writeDatabase(db);
 
     const expTimestamp = keyObj.expiresAt ? Math.floor(new Date(keyObj.expiresAt).getTime() / 1000) : 0;
     let scriptOutput = db.settings.rawScriptBody
@@ -897,7 +983,8 @@ export function createExpressApp() {
         if (pendingTrx.durationDays > 0) {
           expiresAt = new Date(now.getTime() + pendingTrx.durationDays * 24 * 60 * 60 * 1000).toISOString();
         }
-        const keyString = generateKeyString("MWH");
+        const isCustomUnique = pendingTrx.requestedCustomKey && !db.keys.some(k => k.key.toUpperCase() === pendingTrx.requestedCustomKey!.toUpperCase());
+        const keyString = isCustomUnique ? pendingTrx.requestedCustomKey! : generateKeyString("MWH");
         const keyRecord: IssuedKey = {
           key: keyString,
           packageId: pendingTrx.packageId,
@@ -906,7 +993,8 @@ export function createExpressApp() {
           createdAt: now.toISOString(),
           expiresAt,
           status: 'active',
-          customerNote: `Webhook Tasker verified Rp ${cleanNominal}`,
+          hwid: null,
+          customerNote: pendingTrx.requestedCustomKey ? `Webhook Custom Key Rp ${cleanNominal}` : `Webhook Tasker verified Rp ${cleanNominal}`,
           transactionId: pendingTrx.id,
           robloxUsername: pendingTrx.robloxUsername || "Buyer"
         };

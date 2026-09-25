@@ -728,7 +728,21 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
                         <tr key={t.id} className="hover:bg-purple-950/20">
                           <td className="py-3 px-3 font-mono-code text-purple-200">{t.id}</td>
                           <td className="py-3 px-3 font-semibold text-white">{t.packageName}</td>
-                          <td className="py-3 px-3 text-purple-300">{t.robloxUsername || '-'}</td>
+                          <td className="py-3 px-3">
+                            {t.robloxUsername && t.robloxUsername !== 'Guest' && t.robloxUsername !== 'User' ? (
+                              <div className="flex items-center gap-1.5 font-semibold text-white">
+                                <span className="text-purple-400">🎮</span>
+                                <span>{t.robloxUsername}</span>
+                              </div>
+                            ) : (
+                              <span className="text-purple-400/50 italic text-[11px]">Belum execute</span>
+                            )}
+                            {t.requestedCustomKey && (
+                              <div className="text-[10px] text-amber-300 font-mono-code mt-0.5">
+                                Req: {t.requestedCustomKey}
+                              </div>
+                            )}
+                          </td>
                           <td className="py-3 px-3 font-mono-code font-bold text-amber-300">
                             {formatRupiah(t.totalAmount || t.baseAmount)}
                           </td>
@@ -1426,27 +1440,35 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
                             </span>
                           </td>
                           <td className="py-3 px-3 text-purple-300">
-                            <div>{k.robloxUsername || 'User'}</div>
-                            <div className="text-[10px] text-purple-400/60 truncate max-w-[140px]">{k.customerNote || '-'}</div>
+                            {k.robloxUsername && k.robloxUsername !== 'User' && k.robloxUsername !== 'Guest' ? (
+                              <div className="flex items-center gap-1.5 font-semibold text-white">
+                                <span className="text-purple-400">🎮</span>
+                                <span>{k.robloxUsername}</span>
+                              </div>
+                            ) : (
+                              <span className="text-purple-400/50 italic text-[11px]">Belum execute</span>
+                            )}
+                            <div className="text-[10px] text-purple-400/60 truncate max-w-[140px] mt-0.5">{k.customerNote || '-'}</div>
                           </td>
                           <td className="py-3 px-3 font-mono-code text-[11px] text-purple-200">
                             {k.expiresAt ? new Date(k.expiresAt).toLocaleDateString('id-ID') : 'Lifetime'}
                           </td>
                           <td className="py-3 px-3">
                             {k.hwid ? (
-                              <div className="flex items-center gap-1">
-                                <span className="text-[10px] font-mono-code text-cyan-300 truncate max-w-[80px]" title={k.hwid}>
-                                  Terkunci
+                              <div className="flex items-center gap-1.5">
+                                <span className="px-1.5 py-0.5 rounded bg-cyan-950/70 text-cyan-300 border border-cyan-500/30 text-[10px] font-mono-code truncate max-w-[90px]" title={k.hwid}>
+                                  🔒 1 Device
                                 </span>
                                 <button
                                   onClick={() => handleResetHwid(k.key)}
-                                  className="text-[10px] text-amber-400 hover:underline"
+                                  className="px-1.5 py-0.5 rounded bg-amber-950/60 hover:bg-amber-900/80 text-amber-300 border border-amber-800/40 text-[10px] font-bold transition"
+                                  title="Reset kunci HWID agar bisa digunakan di perangkat baru"
                                 >
                                   Reset
                                 </button>
                               </div>
                             ) : (
-                              <span className="text-[10px] text-purple-400/60">Belum Ada</span>
+                              <span className="text-[10px] text-emerald-400/80 font-medium">Bebas (Belum Terkunci)</span>
                             )}
                           </td>
                           <td className="py-3 px-3 text-right">
@@ -1677,6 +1699,30 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
                       onChange={(e) => setSettings({
                         ...settings,
                         arexanspay: { ...settings.arexanspay, enableSimulation: e.target.checked }
+                      })}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-purple-950 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-purple-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                  </label>
+                </div>
+
+                {/* Toggle 4: Custom Key Request in Order Form */}
+                <div className="p-3.5 rounded-xl bg-[#110526] border border-purple-900/60 flex items-center justify-between gap-4">
+                  <div>
+                    <span className="text-xs font-bold text-white block">
+                      Izinkan Pembeli Request Custom Key Sendiri
+                    </span>
+                    <span className="text-[11px] text-purple-300/70">
+                      Tampilkan kolom input custom key (opsional) saat order, sehingga pembeli bisa membuat nama key VIP mereka sendiri (contoh: VIP-NAME).
+                    </span>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={settings.enableCustomKeyOrder ?? true}
+                      onChange={(e) => setSettings({
+                        ...settings,
+                        enableCustomKeyOrder: e.target.checked
                       })}
                       className="sr-only peer"
                     />

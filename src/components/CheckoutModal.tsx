@@ -33,6 +33,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [step, setStep] = useState<'form' | 'payment' | 'success'>('form');
   const [robloxUsername, setRobloxUsername] = useState('');
   const [customerContact, setCustomerContact] = useState('');
+  const [customKey, setCustomKey] = useState('');
   const [paymentChannel, setPaymentChannel] = useState('qris');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -81,9 +82,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           packageId: pkg.id,
-          robloxUsername: robloxUsername.trim() || 'MawwwHub Member',
+          robloxUsername: robloxUsername.trim() || 'Guest',
           customerContact: customerContact.trim() || '',
-          paymentChannel
+          paymentChannel,
+          customKey: customKey.trim() || undefined
         })
       });
 
@@ -319,6 +321,28 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   />
                   <span className="text-[11px] text-purple-400/60 mt-1 block">
                     Untuk notifikasi bukti transaksi dan cadangan key.
+                  </span>
+                </div>
+              )}
+
+              {(settings?.enableCustomKeyOrder ?? true) && (
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-semibold text-purple-200">
+                      Custom License Key (Opsional)
+                    </label>
+                    <span className="text-[10px] text-purple-400/80 font-medium">Bebas Buat Nama Key</span>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Contoh: VIP-RAFI-2026 atau MWH-SULTAN"
+                    value={customKey}
+                    onChange={(e) => setCustomKey(e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, ''))}
+                    maxLength={32}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#0c051a] border border-purple-800/60 focus:border-purple-400 focus:outline-none text-xs font-mono-code text-purple-200 placeholder-purple-400/30 uppercase"
+                  />
+                  <span className="text-[11px] text-purple-400/60 mt-1 block">
+                    Bebas atur nama key sendiri! Kosongkan jika ingin key acak otomatis (MWH-XXXX).
                   </span>
                 </div>
               )}

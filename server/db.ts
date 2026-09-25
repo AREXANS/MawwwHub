@@ -60,6 +60,7 @@ export interface Transaction {
   robloxUsername?: string;
   customerContact?: string;
   issuedKey?: string;
+  requestedCustomKey?: string;
   arexanspayTrxId?: string;
 }
 
@@ -78,6 +79,7 @@ export interface AppSettings {
   announcementText: string;
   enableOrderUsername?: boolean;
   enableOrderWhatsapp?: boolean;
+  enableCustomKeyOrder?: boolean;
   // Loadstring & Raw Code settings
   loadstringTemplate: string;
   rawScriptBody: string;
@@ -127,10 +129,12 @@ const defaultSettings: AppSettings = {
   announcementText: "🔥 PROMO LAUNCHING: Dapatkan diskon 30% untuk semua paket durasi script MawwwHub hari ini!",
   enableOrderUsername: false,
   enableOrderWhatsapp: false,
+  enableCustomKeyOrder: true,
   loadstringTemplate: `_G.MawwwHubKey = "{KEY}"
-loadstring(game:HttpGet("{API_BASE}/api/raw/mawwwhub?key=" .. _G.MawwwHubKey))()`,
-  rawScriptBody: `-- [[ MawwwHub Official Script Hub - Premium Edition ]] --
--- Realtime Key Duration & Auto Sync HUD System
+local p = game:GetService("Players").LocalPlayer
+local h = (gethwid and gethwid()) or (getgenv and getgenv().gethwid and getgenv().gethwid()) or (identifyexecutor and identifyexecutor() .. "_" .. game:GetService("RbxAnalyticsService"):GetClientId()) or tostring(p.UserId)
+loadstring(game:HttpGet("{API_BASE}/api/raw/mawwwhub?key=" .. _G.MawwwHubKey .. "&player=" .. p.Name .. "&hwid=" .. h))()`,
+  rawScriptBody: `-- [[ MawwwHub Official Script Hub - Ultra Mini HUD & Realtime Device Sync ]] --
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local HttpService = game:GetService("HttpService")
@@ -142,18 +146,52 @@ local BrandName = "{BRAND_NAME}"
 local PackageName = "{PACKAGE}"
 local ExpireTimestamp = {EXPIRES_AT_TIMESTAMP} -- Unix seconds (0 = Lifetime)
 
-print("[MawwwHub] Key verified successfully for: " .. LocalPlayer.Name)
+-- Extract Executor HWID
+local function getExecutorHwid()
+    local hwid = ""
+    pcall(function()
+        if gethwid then
+            hwid = gethwid()
+        elseif getgenv and getgenv().gethwid then
+            hwid = getgenv().gethwid()
+        elseif identifyexecutor then
+            local exec = identifyexecutor()
+            local cid = ""
+            pcall(function() cid = game:GetService("RbxAnalyticsService"):GetClientId() end)
+            hwid = exec .. "_" .. (cid ~= "" and cid or tostring(LocalPlayer.UserId))
+        else
+            pcall(function() hwid = game:GetService("RbxAnalyticsService"):GetClientId() end)
+            if not hwid or hwid == "" then
+                hwid = "RBX_" .. tostring(LocalPlayer.UserId)
+            end
+        end
+    end)
+    return (hwid and hwid ~= "") and hwid or ("RBX_ID_" .. tostring(LocalPlayer.UserId))
+end
 
--- Notify Player on execution
-pcall(function()
-    game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = "💜 " .. BrandName .. " VIP Active",
-        Text = "Key terverifikasi! Durasi realtime aktif di pojok layar.",
-        Duration = 5
-    })
+local DetectedHwid = getExecutorHwid()
+
+-- Background Sync HWID & Roblox Username to Web API
+task.spawn(function()
+    pcall(function()
+        local syncUrl = ApiBase .. "/api/key/sync-device?key=" .. Key .. "&player=" .. HttpService:UrlEncode(LocalPlayer.Name) .. "&hwid=" .. HttpService:UrlEncode(DetectedHwid)
+        local rawRes = game:HttpGet(syncUrl)
+        if rawRes then
+            local res = HttpService:JSONDecode(rawRes)
+            if res and res.error == "hwid_mismatch" then
+                pcall(function()
+                    local oldGui = (game:GetService("CoreGui"):FindFirstChild("MawwwHub_VIP_HUD") or LocalPlayer:FindFirstChild("PlayerGui"):FindFirstChild("MawwwHub_VIP_HUD"))
+                    if oldGui then oldGui:Destroy() end
+                end)
+                error("[MawwwHub] " .. (res.message or "Key terkunci pada HWID lain!"))
+            end
+        end
+    end)
 end)
 
--- Remove existing HUD if present
+print("[MawwwHub] Key verified for: " .. LocalPlayer.Name .. " | HWID: " .. DetectedHwid)
+
+-- Remove old UI
 pcall(function()
     local old = (game:GetService("CoreGui"):FindFirstChild("MawwwHub_VIP_HUD") or LocalPlayer:FindFirstChild("PlayerGui"):FindFirstChild("MawwwHub_VIP_HUD"))
     if old then old:Destroy() end
@@ -172,150 +210,149 @@ if not ScreenGui.Parent then
     ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 end
 
--- Main Floating Transparent Card (Positioned top-right corner)
+-- 1. Ultra Mini Floating Card (Sangat mini, hemat tempat)
 local Card = Instance.new("Frame")
-Card.Name = "DurationCard"
-Card.Size = UDim2.new(0, 260, 0, 80)
-Card.Position = UDim2.new(1, -275, 0, 20)
-Card.BackgroundColor3 = Color3.fromRGB(15, 6, 32)
-Card.BackgroundTransparency = 0.35 -- Transparan di pojok layar
+Card.Name = "MiniHUD"
+Card.Size = UDim2.new(0, 205, 0, 26)
+Card.Position = UDim2.new(1, -215, 0, 14)
+Card.BackgroundColor3 = Color3.fromRGB(15, 6, 30)
+Card.BackgroundTransparency = 0.35
 Card.BorderSizePixel = 0
 Card.Active = true
-Card.ClipsDescendants = false
+Card.ClipsDescendants = true
 Card.Parent = ScreenGui
 
--- Rounded Corners
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 12)
-UICorner.Parent = Card
+local CardCorner = Instance.new("UICorner")
+CardCorner.CornerRadius = UDim.new(0, 13)
+CardCorner.Parent = Card
 
--- Glowing Purple Stroke Border
-local UIStroke = Instance.new("UIStroke")
-UIStroke.Color = Color3.fromRGB(168, 85, 247)
-UIStroke.Transparency = 0.35
-UIStroke.Thickness = 1.6
-UIStroke.Parent = Card
+local CardStroke = Instance.new("UIStroke")
+CardStroke.Color = Color3.fromRGB(168, 85, 247)
+CardStroke.Transparency = 0.4
+CardStroke.Thickness = 1.2
+CardStroke.Parent = Card
 
--- Header Bar
-local Header = Instance.new("Frame")
-Header.Size = UDim2.new(1, 0, 0, 24)
-Header.BackgroundTransparency = 1
-Header.Parent = Card
-
--- Status Indicator Dot (Glowing Green)
+-- Green dot indicator
 local Dot = Instance.new("Frame")
-Dot.Size = UDim2.new(0, 8, 0, 8)
-Dot.Position = UDim2.new(0, 12, 0.5, -4)
+Dot.Size = UDim2.new(0, 6, 0, 6)
+Dot.Position = UDim2.new(0, 8, 0.5, -3)
 Dot.BackgroundColor3 = Color3.fromRGB(34, 197, 94)
 Dot.BorderSizePixel = 0
-Dot.Parent = Header
+Dot.Parent = Card
 
 local DotCorner = Instance.new("UICorner")
 DotCorner.CornerRadius = UDim.new(1, 0)
 DotCorner.Parent = Dot
 
--- Title Brand
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, -75, 1, 0)
-Title.Position = UDim2.new(0, 25, 0, 0)
-Title.BackgroundTransparency = 1
-Title.Text = BrandName .. " VIP"
-Title.TextColor3 = Color3.fromRGB(243, 232, 255)
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 12
-Title.TextXAlignment = Enum.TextXAlignment.Left
-Title.Parent = Header
+-- Duration & Brand Text
+local InfoLabel = Instance.new("TextLabel")
+InfoLabel.Size = UDim2.new(1, -40, 1, 0)
+InfoLabel.Position = UDim2.new(0, 18, 0, 0)
+InfoLabel.BackgroundTransparency = 1
+InfoLabel.Text = "💜 VIP: ..."
+InfoLabel.TextColor3 = Color3.fromRGB(243, 232, 255)
+InfoLabel.Font = Enum.Font.GothamBold
+InfoLabel.TextSize = 10
+InfoLabel.TextXAlignment = Enum.TextXAlignment.Left
+InfoLabel.Parent = Card
 
--- Package Badge
-local Badge = Instance.new("TextLabel")
-Badge.Size = UDim2.new(0, 56, 0, 16)
-Badge.Position = UDim2.new(1, -66, 0.5, -8)
-Badge.BackgroundColor3 = Color3.fromRGB(126, 34, 206)
-Badge.BackgroundTransparency = 0.3
-Badge.Text = "ACTIVE"
-Badge.TextColor3 = Color3.fromRGB(255, 255, 255)
-Badge.Font = Enum.Font.GothamBold
-Badge.TextSize = 9
-Badge.Parent = Header
+-- Hide / Minimize Button
+local HideBtn = Instance.new("TextButton")
+HideBtn.Size = UDim2.new(0, 18, 0, 18)
+HideBtn.Position = UDim2.new(1, -22, 0.5, -9)
+HideBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 85)
+HideBtn.BackgroundTransparency = 0.4
+HideBtn.Text = "✕"
+HideBtn.TextColor3 = Color3.fromRGB(216, 180, 254)
+HideBtn.Font = Enum.Font.GothamBold
+HideBtn.TextSize = 9
+HideBtn.Parent = Card
 
-local BadgeCorner = Instance.new("UICorner")
-BadgeCorner.CornerRadius = UDim.new(0, 4)
-BadgeCorner.Parent = Badge
+local HideBtnCorner = Instance.new("UICorner")
+HideBtnCorner.CornerRadius = UDim.new(0, 9)
+HideBtnCorner.Parent = HideBtn
 
--- Divider
-local Line = Instance.new("Frame")
-Line.Size = UDim2.new(1, -20, 0, 1)
-Line.Position = UDim2.new(0, 10, 0, 26)
-Line.BackgroundColor3 = Color3.fromRGB(147, 51, 234)
-Line.BackgroundTransparency = 0.6
-Line.BorderSizePixel = 0
-Line.Parent = Card
+-- 2. Floating Mini Pill Button (When Hidden)
+local MiniPill = Instance.new("TextButton")
+MiniPill.Name = "MiniPill"
+MiniPill.Size = UDim2.new(0, 28, 0, 28)
+MiniPill.Position = UDim2.new(1, -38, 0, 14)
+MiniPill.BackgroundColor3 = Color3.fromRGB(20, 8, 40)
+MiniPill.BackgroundTransparency = 0.3
+MiniPill.Text = "💜"
+MiniPill.TextSize = 12
+MiniPill.Visible = false
+MiniPill.Active = true
+MiniPill.Parent = ScreenGui
 
--- Realtime Key Label
-local KeyLabel = Instance.new("TextLabel")
-KeyLabel.Size = UDim2.new(1, -24, 0, 18)
-KeyLabel.Position = UDim2.new(0, 12, 0, 31)
-KeyLabel.BackgroundTransparency = 1
-KeyLabel.Text = "🔑 " .. Key
-KeyLabel.TextColor3 = Color3.fromRGB(216, 180, 254)
-KeyLabel.Font = Enum.Font.Code
-KeyLabel.TextSize = 10
-KeyLabel.TextXAlignment = Enum.TextXAlignment.Left
-KeyLabel.Parent = Card
+local PillCorner = Instance.new("UICorner")
+PillCorner.CornerRadius = UDim.new(1, 0)
+PillCorner.Parent = MiniPill
 
--- Realtime Duration Countdown Label
-local DurationLabel = Instance.new("TextLabel")
-DurationLabel.Size = UDim2.new(1, -24, 0, 22)
-DurationLabel.Position = UDim2.new(0, 12, 0, 51)
-DurationLabel.BackgroundTransparency = 1
-DurationLabel.Text = "⏳ Menghitung durasi..."
-DurationLabel.TextColor3 = Color3.fromRGB(253, 224, 71)
-DurationLabel.Font = Enum.Font.GothamBold
-DurationLabel.TextSize = 11
-DurationLabel.TextXAlignment = Enum.TextXAlignment.Left
-DurationLabel.Parent = Card
+local PillStroke = Instance.new("UIStroke")
+PillStroke.Color = Color3.fromRGB(168, 85, 247)
+PillStroke.Transparency = 0.35
+PillStroke.Thickness = 1.2
+PillStroke.Parent = MiniPill
 
--- Draggable implementation for Mobile & PC
-local dragging, dragInput, dragStart, startPos
-Card.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = true
-        dragStart = input.Position
-        startPos = Card.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
-    end
-end)
-Card.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-        dragInput = input
-    end
-end)
-UserInputService.InputChanged:Connect(function(input)
-    if input == dragInput and dragging then
-        local delta = input.Position - dragStart
-        Card.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
+-- Hide / Expand Toggle Actions
+HideBtn.MouseButton1Click:Connect(function()
+    Card.Visible = false
+    MiniPill.Position = UDim2.new(Card.Position.X.Scale, Card.Position.X.Offset + (Card.AbsoluteSize.X - 30), Card.Position.Y.Scale, Card.Position.Y.Offset)
+    MiniPill.Visible = true
 end)
 
--- Format remaining time function
+MiniPill.MouseButton1Click:Connect(function()
+    MiniPill.Visible = false
+    Card.Visible = true
+end)
+
+-- Draggable implementation for both elements
+local function makeDraggable(guiObject)
+    local dragging, dragInput, dragStart, startPos
+    guiObject.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = guiObject.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+    guiObject.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            guiObject.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+end
+
+makeDraggable(Card)
+makeDraggable(MiniPill)
+
+-- Format remaining time helper
 local function formatRemaining(seconds)
     if seconds <= 0 then
-        return "⚠️ MASA AKTIF HABIS (EXPIRED)"
+        return "EXPIRED"
     end
     local days = math.floor(seconds / 86400)
     local hours = math.floor((seconds % 86400) / 3600)
     local mins = math.floor((seconds % 3600) / 60)
     local secs = math.floor(seconds % 60)
     if days > 0 then
-        return string.format("⏳ Sisa: %dH %dJ %dM %dS", days, hours, mins, secs)
+        return string.format("%dH %dJ %dM", days, hours, mins)
     elseif hours > 0 then
-        return string.format("⏳ Sisa: %dJ %dM %dS", hours, mins, secs)
+        return string.format("%dJ %dM %dS", hours, mins, secs)
     else
-        return string.format("⏳ Sisa: %dM %dS", mins, secs)
+        return string.format("%dM %dS", mins, secs)
     end
 end
 
@@ -324,27 +361,25 @@ local isLifetime = (ExpireTimestamp == 0)
 task.spawn(function()
     while ScreenGui.Parent do
         if isLifetime then
-            DurationLabel.Text = "⏳ Sisa: PERMANEN (LIFETIME)"
-            DurationLabel.TextColor3 = Color3.fromRGB(52, 211, 153)
+            InfoLabel.Text = "💜 VIP: PERMANEN"
+            InfoLabel.TextColor3 = Color3.fromRGB(52, 211, 153)
         else
             local now = os.time()
             local diff = ExpireTimestamp - now
             if diff <= 0 then
-                DurationLabel.Text = "⚠️ KEY KEDALUWARSA"
-                DurationLabel.TextColor3 = Color3.fromRGB(248, 113, 113)
+                InfoLabel.Text = "⚠️ KEY EXPIRED"
+                InfoLabel.TextColor3 = Color3.fromRGB(248, 113, 113)
                 Dot.BackgroundColor3 = Color3.fromRGB(239, 68, 68)
-                Badge.Text = "EXPIRED"
-                Badge.BackgroundColor3 = Color3.fromRGB(220, 38, 38)
             else
-                DurationLabel.Text = formatRemaining(diff)
-                DurationLabel.TextColor3 = Color3.fromRGB(253, 224, 71)
+                InfoLabel.Text = "⏳ " .. formatRemaining(diff)
+                InfoLabel.TextColor3 = Color3.fromRGB(253, 224, 71)
             end
         end
         task.wait(1)
     end
 end)
 
--- Realtime Web API Sync (Fetches live verification from web every 60s)
+-- Realtime Web API Verification Sync
 task.spawn(function()
     while ScreenGui.Parent do
         task.wait(60)
@@ -355,12 +390,8 @@ task.spawn(function()
                 if data and data.success then
                     if not data.valid or data.status == "expired" or data.status == "revoked" then
                         Dot.BackgroundColor3 = Color3.fromRGB(239, 68, 68)
-                        Badge.Text = string.upper(data.status or "EXPIRED")
-                        Badge.BackgroundColor3 = Color3.fromRGB(220, 38, 38)
-                        DurationLabel.Text = "⚠️ " .. (data.message or "Key tidak aktif!")
-                        DurationLabel.TextColor3 = Color3.fromRGB(248, 113, 113)
-                    elseif isLifetime or (data.data and data.data.durationDays == -1) then
-                        DurationLabel.Text = "⏳ Sisa: PERMANEN (LIFETIME)"
+                        InfoLabel.Text = "⚠️ " .. string.upper(data.status or "EXPIRED")
+                        InfoLabel.TextColor3 = Color3.fromRGB(248, 113, 113)
                     end
                 end
             end
@@ -368,13 +399,13 @@ task.spawn(function()
     end
 end)
 
-print("[MawwwHub] Realtime duration HUD initialized successfully.")`,
+print("[MawwwHub] Mini HUD loaded.")`,
   rawLoaderTemplate: `-- [[ MawwwHub Loader ]] --
 -- Paste kode ini di Executor Anda (Delta, Codex, Solara, Wave, dll):
 _G.MawwwHubKey = "{KEY}"
 loadstring(game:HttpGet("{API_BASE}/api/raw/mawwwhub?key=" .. _G.MawwwHubKey))()`,
   maxHwidPerKey: 1,
-  enableHwidLock: false,
+  enableHwidLock: true,
   arexanspay: {
     apiUrl: "https://arexanspay.my.id",
     apiKey: "arexanspay_07365360dc0f8af09d084ae8be829ce8499eca3f95c33bb0cfe3608e4aea9a44",
@@ -463,8 +494,14 @@ export function readDatabase(): DatabaseSchema {
       if (!data.settings) data.settings = defaultSettings;
       if (data.settings.enableOrderUsername === undefined) data.settings.enableOrderUsername = false;
       if (data.settings.enableOrderWhatsapp === undefined) data.settings.enableOrderWhatsapp = false;
-      if (!data.settings.rawScriptBody || data.settings.rawScriptBody.includes("MawwwHub_Indicator")) {
+      if (data.settings.enableCustomKeyOrder === undefined) data.settings.enableCustomKeyOrder = true;
+      if (data.settings.enableHwidLock === undefined) data.settings.enableHwidLock = true;
+      if (data.settings.maxHwidPerKey === undefined) data.settings.maxHwidPerKey = 1;
+      if (!data.settings.rawScriptBody || data.settings.rawScriptBody.includes("MawwwHub_Indicator") || data.settings.rawScriptBody.includes("DurationCard")) {
         data.settings.rawScriptBody = defaultSettings.rawScriptBody;
+      }
+      if (!data.settings.loadstringTemplate || !data.settings.loadstringTemplate.includes("player")) {
+        data.settings.loadstringTemplate = defaultSettings.loadstringTemplate;
       }
       if (!data.keys) data.keys = [];
       if (!data.transactions) data.transactions = [];

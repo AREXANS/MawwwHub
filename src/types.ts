@@ -45,6 +45,7 @@ export interface Transaction {
   robloxUsername?: string;
   customerContact?: string;
   issuedKey?: string;
+  requestedCustomKey?: string;
   arexanspayTrxId?: string;
 }
 
@@ -63,6 +64,7 @@ export interface AppPublicSettings {
   announcementText: string;
   enableOrderUsername?: boolean;
   enableOrderWhatsapp?: boolean;
+  enableCustomKeyOrder?: boolean;
   packages: ScriptPackage[];
   defaultChannel: string;
   simulationEnabled: boolean;
@@ -84,6 +86,7 @@ export interface FullAdminSettings {
   announcementText: string;
   enableOrderUsername?: boolean;
   enableOrderWhatsapp?: boolean;
+  enableCustomKeyOrder?: boolean;
   loadstringTemplate: string;
   rawScriptBody: string;
   rawLoaderTemplate: string;
