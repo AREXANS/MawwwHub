@@ -257,9 +257,23 @@
       }
     ]
   },
-  "keys": [],
+  "keys": [
+    {
+      "key": "MWH-DEMO-LIFETIME-DEVKEY",
+      "packageId": "pkg-perm",
+      "packageName": "Paket Lifetime (Permanen)",
+      "durationDays": -1,
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "expiresAt": null,
+      "status": "active",
+      "hwid": null,
+      "customerNote": "Default Demo Key untuk Testing Admin",
+      "robloxUsername": "Mawww_Admin"
+    }
+  ],
   "transactions": [],
   "adminTokens": [
-    "mawwwhub-permanent-session-token"
+    "mawwwhub-permanent-session-token",
+    "mawwwhub_auth_permanent_key_201122"
   ]
 }

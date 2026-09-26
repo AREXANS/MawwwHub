@@ -56,6 +56,162 @@ interface DevDashboardProps {
   onBackToHome: () => void;
 }
 
+const DEFAULT_PAYMENT_METHODS: PaymentMethodConfig[] = [
+  { id: 'qris', name: 'QRIS All Payment (GPN)', code: 'qris', category: 'qris', instructions: 'Scan QRIS dengan GoPay, OVO, DANA, ShopeePay, LinkAja, BCA, Mandiri, BRI, BNI atau aplikasi m-Banking manapun.', isActive: true, isDefault: true },
+  { id: 'dana', name: 'DANA Instant', code: 'dana', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', instructions: 'Transfer ke nomor akun DANA di atas. Masukkan nominal tepat beserta kode unik agar otomatis terkonfirmasi.', isActive: true },
+  { id: 'gopay', name: 'GoPay / Gojek', code: 'gopay', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', instructions: 'Transfer saldo GoPay ke nomor di atas. Pembayaran terverifikasi otomatis.', isActive: true },
+  { id: 'ovo', name: 'OVO Cash', code: 'ovo', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', instructions: 'Buka aplikasi OVO dan transfer ke nomor di atas sesuai total pembayaran.', isActive: true },
+  { id: 'shopeepay', name: 'ShopeePay', code: 'shopeepay', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', instructions: 'Transfer ShopeePay ke nomor di atas dengan nominal yang tepat.', isActive: true },
+  { id: 'linkaja', name: 'LinkAja', code: 'linkaja', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', instructions: 'Transfer via aplikasi LinkAja ke nomor tertera.', isActive: false },
+  { id: 'bank_bca', name: 'Bank Central Asia (BCA)', code: 'bca', category: 'bank', accountNumber: '8735091823', accountHolder: 'MawwwHub Store', instructions: 'Transfer via m-BCA atau KlikBCA. Wajib transfer sesuai nominal hingga 3 digit kode unik.', isActive: true },
+  { id: 'bank_bri', name: 'Bank Rakyat Indonesia (BRI)', code: 'bri', category: 'bank', accountNumber: '012901092839501', accountHolder: 'MawwwHub Store', instructions: 'Transfer via BRImo atau ATM BRI dengan nominal pas termasuk kode unik.', isActive: true },
+  { id: 'bank_mandiri', name: 'Bank Mandiri (Livin)', code: 'mandiri', category: 'bank', accountNumber: '1370019284950', accountHolder: 'MawwwHub Store', instructions: 'Transfer via Livin by Mandiri. Transfer tepat sesuai kode unik.', isActive: true },
+  { id: 'bank_bni', name: 'Bank Negara Indonesia (BNI)', code: 'bni', category: 'bank', accountNumber: '0981726481', accountHolder: 'MawwwHub Store', instructions: 'Transfer via BNI Mobile Banking dengan nominal tepat.', isActive: true },
+  { id: 'bank_seabank', name: 'SeaBank (Transfer Gratis)', code: 'seabank', category: 'bank', accountNumber: '901928475829', accountHolder: 'MawwwHub Store', instructions: 'Bebas biaya admin transfer dari e-wallet/bank lain ke rekening SeaBank ini.', isActive: true },
+  { id: 'bank_bsi', name: 'Bank Syariah Indonesia (BSI)', code: 'bsi', category: 'bank', accountNumber: '7192837495', accountHolder: 'MawwwHub Store', instructions: 'Transfer via BSI Mobile. Transfer nominal tepat untuk aktivasi instan.', isActive: true },
+  { id: 'bank_permata', name: 'Bank Permata', code: 'permata', category: 'bank', accountNumber: '49281729384', accountHolder: 'MawwwHub Store', instructions: 'Transfer via PermataMobile X atau ATM Permata.', isActive: false }
+];
+
+const DEFAULT_LUA_SCRIPT = `-- [[ MawwwHub Official Script Hub - Violence District VIP Edition ]] --
+-- Place ID: 93978595733734 (Violence District)
+local TARGET_PLACE_ID = 93978595733734
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local HttpService = game:GetService("HttpService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Lighting = game:GetService("Lighting")
+
+local Key = "{KEY}"
+local ApiBase = "{API_BASE}"
+local BrandName = "{BRAND_NAME}"
+local PackageName = "{PACKAGE}"
+local ExpireTimestamp = {EXPIRES_AT_TIMESTAMP} -- Unix seconds (0 = Lifetime)
+
+print("[MawwwHub] Violence District VIP script loaded successfully.")`;
+
+const DEFAULT_ADMIN_SETTINGS: FullAdminSettings = {
+  brandName: "MawwwHub",
+  logoUrl: "",
+  tagline: "The #1 Roblox Violence District Script Hub & Auto Delivery Store",
+  heroHeadline: "MawwwHub VIP - Violence District Script",
+  heroSubheadline: "Script resmi Roblox Violence District terlengkap: Auto Scavenge Scrap, ESP Monster & Loot, Combat Silent Aim, Infinite Stamina, dan 100% Undetected.",
+  statusBadgeText: "Violence District Hub: Undetected & Online",
+  statusBadgeType: "online",
+  statusSubtext: "VIP Script Undetected",
+  heroPills: [
+    { id: 'pill-1', icon: 'zap', title: 'Instan Delivery', description: 'Key & loadstring langsung terbit hitungan detik setelah bayar.' },
+    { id: 'pill-2', icon: 'shield', title: 'Bypass Anti-Cheat', description: 'Perlindungan keamanan tinggi aman dari ban Roblox.' },
+    { id: 'pill-3', icon: 'check', title: 'Multi-Payment Otomatis', description: 'Mendukung QRIS, DANA, GoPay, OVO, BCA, BRI, Mandiri, SeaBank.' },
+    { id: 'pill-4', icon: 'sparkles', title: 'Violence District VIP', description: 'Eksklusif untuk Roblox Violence District, support PC & Mobile.' }
+  ],
+  adBanner: {
+    enabled: false,
+    type: 'image',
+    mediaUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80',
+    title: '🔥 Promo Spesial MawwwHub VIP Script',
+    badge: 'OFFICIAL UPDATE',
+    description: 'Dapatkan akses eksklusif auto-farm dan fitur premium dengan diskon terbatas!',
+    targetUrl: '#packages-section',
+    buttonText: 'Beli Key Sekarang',
+    position: 'middle'
+  },
+  quickToolsTitle: "Sudah Punya Key MawwwHub?",
+  quickToolsDesc: "Cek sisa masa aktif key Anda atau pelajari cara eksekusi script Violence District di HP Android dan PC.",
+  quickToolsBtn1Text: "Cek Validasi Key",
+  quickToolsBtn2Text: "Tutorial Executor",
+  footerText: "MawwwHub Violence District Edition • Powered by ArexansPay Multi-Bank & QRIS Automation",
+  gameName: "Violence District",
+  scriptDescription: "MawwwHub Violence District Edition dikembangkan khusus dan eksklusif untuk game Roblox Violence District. Dilengkapi fitur Auto Scavenge Scrap & Crates, ESP Lengkap (Entity, Enemies, Players, Items), Combat Hitbox Expander, Fullbright tanpa kegelapan, Infinite Stamina, serta GUI in-game responsif untuk Mobile (Delta/Codex) & PC (Solara/Wave).",
+  scriptFeatures: [
+    "⚡ Auto Scavenge Scrap & Crate Opener Instan",
+    "👁️ ESP Lengkap (Monsters, Killers, Survivors, Scraps & Items)",
+    "🎯 Combat Mods: Silent Aim, Hitbox Expander & Fast Attack",
+    "🛡️ 100% Undetected & Anti-Ban Violence District Bypass",
+    "🔦 Fullbright & Anti-Fog (Tembus Gelap Total & Malam Hari)",
+    "⚡ Infinite Stamina & Speed Multiplier (Lari Tanpa Batas)",
+    "🚀 Instant Safehouse / Extraction Safezone Teleport",
+    "📱 Support Mobile (Delta, Codex, Arceus X) & PC (Solara, Wave)"
+  ],
+  discordUrl: "https://discord.gg/mawwwhub",
+  telegramUrl: "https://t.me/mawwwhub",
+  whatsappContact: "https://wa.me/6281234567890",
+  announcementText: "🔥 VIOLENCE DISTRICT VIP: Auto farm scrap, ESP monster & fullbright aktif! Diskon 30% hari ini!",
+  enableOrderUsername: false,
+  enableOrderWhatsapp: false,
+  enableCustomKeyOrder: true,
+  loadstringTemplate: `_G.MawwwHubKey = "{KEY}"\nloadstring(game:HttpGet("{API_BASE}/api/raw/mawwwhub?key=" .. _G.MawwwHubKey))()`,
+  rawScriptBody: DEFAULT_LUA_SCRIPT,
+  rawLoaderTemplate: `-- [[ MawwwHub Loader ]] --\n-- Paste kode ini di Executor Anda (Delta, Codex, Solara, Wave, dll):\n_G.MawwwHubKey = "{KEY}"\nloadstring(game:HttpGet("{API_BASE}/api/raw/mawwwhub?key=" .. _G.MawwwHubKey))()`,
+  maxHwidPerKey: 1,
+  enableHwidLock: true,
+  paymentMethods: DEFAULT_PAYMENT_METHODS,
+  arexanspay: {
+    apiUrl: "https://arexanspay.my.id",
+    apiKey: "arexanspay_07365360dc0f8af09d084ae8be829ce8499eca3f95c33bb0cfe3608e4aea9a44",
+    qrisId: "axspay-na49b8c-ec96-41dc-a4e2-1293e755a81h",
+    webhookSecret: "WEBHOOK_KEY_TOKO_ANDA",
+    numberId: 1,
+    enableSimulation: true,
+    defaultChannel: "qris"
+  },
+  packages: [
+    {
+      id: "pkg-1d",
+      name: "Paket 1 Hari",
+      durationDays: 1,
+      durationLabel: "1 Hari (24 Jam)",
+      price: 5000,
+      isPopular: false,
+      description: "Akses 24 jam penuh untuk uji coba fitur VIP",
+      isActive: true
+    },
+    {
+      id: "pkg-7d",
+      name: "Paket 7 Hari (1 Minggu)",
+      durationDays: 7,
+      durationLabel: "7 Hari (1 Minggu)",
+      price: 15000,
+      isPopular: true,
+      description: "Paket paling diminati! Pas untuk grinding mingguan",
+      isActive: true
+    },
+    {
+      id: "pkg-30d",
+      name: "Paket 30 Hari (1 Bulan)",
+      durationDays: 30,
+      durationLabel: "30 Hari (1 Bulan)",
+      price: 35000,
+      isPopular: false,
+      description: "Akses eksklusif 1 bulan penuh tanpa hambatan",
+      isActive: true
+    },
+    {
+      id: "pkg-perm",
+      name: "Paket Lifetime (Permanen)",
+      durationDays: -1,
+      durationLabel: "Lifetime / Permanen",
+      price: 75000,
+      isPopular: false,
+      description: "Akses selamanya termasuk semua update patch masa depan",
+      isActive: true
+    }
+  ]
+};
+
+const DEFAULT_DEMO_KEY: IssuedKey = {
+  key: "MWH-DEMO-LIFETIME-DEVKEY",
+  packageId: "pkg-perm",
+  packageName: "Paket Lifetime (Permanen)",
+  durationDays: -1,
+  createdAt: "2026-01-01T00:00:00.000Z",
+  expiresAt: null,
+  status: "active",
+  hwid: null,
+  customerNote: "Default Demo Key untuk Testing Admin",
+  robloxUsername: "Mawww_Admin"
+};
+
 export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
   // Auth state
   const [token, setToken] = useState<string>(() => {
@@ -69,11 +225,17 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
   // Tabs: 'stats', 'packages', 'ads', 'arexanspay', 'keys', 'script', 'loadstring'
   const [activeTab, setActiveTab] = useState<'stats' | 'packages' | 'ads' | 'arexanspay' | 'keys' | 'script' | 'loadstring'>('stats');
 
-  // Data states
-  const [settings, setSettings] = useState<FullAdminSettings | null>(null);
-  const [keys, setKeys] = useState<IssuedKey[]>([]);
+  // Data states (initialized with defaults so /dev is never blank)
+  const [settings, setSettings] = useState<FullAdminSettings | null>(DEFAULT_ADMIN_SETTINGS);
+  const [keys, setKeys] = useState<IssuedKey[]>([DEFAULT_DEMO_KEY]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [stats, setStats] = useState<AdminStats | null>({
+    totalKeys: 1,
+    activeKeys: 1,
+    totalTransactions: 0,
+    successTransactions: 0,
+    totalRevenue: 0
+  });
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState('');
   const [saveErrorMsg, setSaveErrorMsg] = useState('');
@@ -915,13 +1077,13 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
       };
 
       const [resSettings, resKeys, resTrx, resStats] = await Promise.all([
-        fetch('/api/admin/settings', { headers }),
-        fetch('/api/admin/keys', { headers }),
-        fetch('/api/admin/transactions', { headers }),
-        fetch('/api/admin/stats', { headers })
+        fetch('/api/admin/settings', { headers }).catch(() => null),
+        fetch('/api/admin/keys', { headers }).catch(() => null),
+        fetch('/api/admin/transactions', { headers }).catch(() => null),
+        fetch('/api/admin/stats', { headers }).catch(() => null)
       ]);
 
-      if (resSettings.status === 401) {
+      if (resSettings && resSettings.status === 401) {
         localStorage.removeItem('mawwwhub_admin_token');
         setToken('');
         setLoginError('Sesi login telah kedaluwarsa. Silakan masuk kembali.');
@@ -929,15 +1091,40 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
         return;
       }
 
-      const dataSettings = await resSettings.json();
-      const dataKeys = await resKeys.json();
-      const dataTrx = await resTrx.json();
-      const dataStats = await resStats.json();
+      const dataSettings = resSettings ? await resSettings.json().catch(() => null) : null;
+      const dataKeys = resKeys ? await resKeys.json().catch(() => null) : null;
+      const dataTrx = resTrx ? await resTrx.json().catch(() => null) : null;
+      const dataStats = resStats ? await resStats.json().catch(() => null) : null;
 
-      if (dataSettings.success) setSettings(dataSettings.data);
-      if (dataKeys.success) setKeys(dataKeys.data);
-      if (dataTrx.success) setTransactions(dataTrx.data);
-      if (dataStats.success) setStats(dataStats.data);
+      if (dataSettings && dataSettings.success && dataSettings.data) {
+        const s = dataSettings.data;
+        setSettings({
+          ...DEFAULT_ADMIN_SETTINGS,
+          ...s,
+          packages: Array.isArray(s.packages) && s.packages.length > 0 ? s.packages : DEFAULT_ADMIN_SETTINGS.packages,
+          paymentMethods: Array.isArray(s.paymentMethods) && s.paymentMethods.length > 0 ? s.paymentMethods : DEFAULT_ADMIN_SETTINGS.paymentMethods,
+          scriptFeatures: Array.isArray(s.scriptFeatures) && s.scriptFeatures.length > 0 ? s.scriptFeatures : DEFAULT_ADMIN_SETTINGS.scriptFeatures,
+          heroPills: Array.isArray(s.heroPills) && s.heroPills.length > 0 ? s.heroPills : DEFAULT_ADMIN_SETTINGS.heroPills,
+          adBanner: s.adBanner ? { ...DEFAULT_ADMIN_SETTINGS.adBanner, ...s.adBanner } : DEFAULT_ADMIN_SETTINGS.adBanner,
+          arexanspay: {
+            ...DEFAULT_ADMIN_SETTINGS.arexanspay,
+            ...(s.arexanspay || {}),
+            apiUrl: s.arexanspay?.apiUrl || DEFAULT_ADMIN_SETTINGS.arexanspay.apiUrl,
+            apiKey: s.arexanspay?.apiKey || DEFAULT_ADMIN_SETTINGS.arexanspay.apiKey,
+            qrisId: s.arexanspay?.qrisId || DEFAULT_ADMIN_SETTINGS.arexanspay.qrisId,
+            webhookSecret: s.arexanspay?.webhookSecret || DEFAULT_ADMIN_SETTINGS.arexanspay.webhookSecret
+          }
+        });
+      }
+      if (dataKeys && dataKeys.success && Array.isArray(dataKeys.data)) {
+        setKeys(dataKeys.data);
+      }
+      if (dataTrx && dataTrx.success && Array.isArray(dataTrx.data)) {
+        setTransactions(dataTrx.data);
+      }
+      if (dataStats && dataStats.success && dataStats.data) {
+        setStats(dataStats.data);
+      }
     } catch (err: any) {
       console.error('Error loading admin data:', err);
     } finally {
@@ -977,7 +1164,7 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
     if (confirm('Apakah Anda yakin ingin logout dari MawwwHub /dev?')) {
       localStorage.removeItem('mawwwhub_admin_token');
       setToken('');
-      setSettings(null);
+      setSettings(DEFAULT_ADMIN_SETTINGS);
     }
   };
 

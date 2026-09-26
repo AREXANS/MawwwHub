@@ -156,6 +156,19 @@ export const DUMMY_API_KEY = 'arexanspay_07365360dc0f8af09d084ae8be829ce8499eca3
 export const DUMMY_QRIS_ID = 'axspay-na49b8c-ec96-41dc-a4e2-1293e755a81h';
 export const DUMMY_DEV_KEY = 'MWH-DEMO-LIFETIME-DEVKEY';
 
+export const defaultDemoKey: IssuedKey = {
+  key: DUMMY_DEV_KEY,
+  packageId: 'pkg-perm',
+  packageName: 'Paket Lifetime (Permanen)',
+  durationDays: -1,
+  createdAt: '2026-01-01T00:00:00.000Z',
+  expiresAt: null,
+  status: 'active',
+  hwid: null,
+  customerNote: 'Default Demo Key untuk Testing Admin',
+  robloxUsername: 'Mawww_Admin'
+};
+
 export const defaultPaymentMethods: PaymentMethodConfig[] = [
   {
     id: 'qris',
@@ -1027,22 +1040,57 @@ export function readDatabase(): DatabaseSchema {
       if (!data.settings.paymentMethods || !Array.isArray(data.settings.paymentMethods) || data.settings.paymentMethods.length === 0) {
         data.settings.paymentMethods = JSON.parse(JSON.stringify(defaultPaymentMethods));
         modified = true;
+      } else {
+        const hasAnyAccountNumber = data.settings.paymentMethods.some(
+          (m: PaymentMethodConfig) => m.category !== 'qris' && m.accountNumber && m.accountNumber.trim().length > 0
+        );
+        if (!hasAnyAccountNumber) {
+          data.settings.paymentMethods = JSON.parse(JSON.stringify(defaultPaymentMethods));
+          modified = true;
+        }
       }
 
       if (!data.settings.arexanspay) {
         data.settings.arexanspay = JSON.parse(JSON.stringify(defaultSettings.arexanspay));
         modified = true;
-      } else if (data.settings.arexanspay.enableSimulation === undefined) {
-        data.settings.arexanspay.enableSimulation = true;
-        modified = true;
+      } else {
+        if (!data.settings.arexanspay.apiUrl) {
+          data.settings.arexanspay.apiUrl = defaultSettings.arexanspay.apiUrl;
+          modified = true;
+        }
+        if (!data.settings.arexanspay.apiKey && !data.settings.arexanspay.qrisId && !data.settings.arexanspay.webhookSecret) {
+          data.settings.arexanspay = JSON.parse(JSON.stringify(defaultSettings.arexanspay));
+          modified = true;
+        }
+        if (data.settings.arexanspay.enableSimulation === undefined) {
+          data.settings.arexanspay.enableSimulation = true;
+          modified = true;
+        }
       }
 
+      if (!data.settings.packages || !Array.isArray(data.settings.packages) || data.settings.packages.length === 0) {
+        data.settings.packages = JSON.parse(JSON.stringify(defaultSettings.packages));
+        modified = true;
+      }
+      if (!data.settings.scriptFeatures || !Array.isArray(data.settings.scriptFeatures) || data.settings.scriptFeatures.length === 0) {
+        data.settings.scriptFeatures = JSON.parse(JSON.stringify(defaultSettings.scriptFeatures));
+        modified = true;
+      }
       if (!data.settings.adBanner) {
         data.settings.adBanner = defaultAdBanner;
       }
       if (!data.settings.heroPills || !Array.isArray(data.settings.heroPills) || data.settings.heroPills.length === 0) {
         data.settings.heroPills = defaultHeroPills;
       }
+      if (!data.settings.brandName) data.settings.brandName = defaultSettings.brandName;
+      if (!data.settings.gameName) data.settings.gameName = defaultSettings.gameName;
+      if (!data.settings.heroHeadline) data.settings.heroHeadline = defaultSettings.heroHeadline;
+      if (!data.settings.heroSubheadline) data.settings.heroSubheadline = defaultSettings.heroSubheadline;
+      if (!data.settings.scriptDescription) data.settings.scriptDescription = defaultSettings.scriptDescription;
+      if (!data.settings.announcementText) data.settings.announcementText = defaultSettings.announcementText;
+      if (!data.settings.discordUrl) data.settings.discordUrl = defaultSettings.discordUrl;
+      if (!data.settings.telegramUrl) data.settings.telegramUrl = defaultSettings.telegramUrl;
+      if (!data.settings.whatsappContact) data.settings.whatsappContact = defaultSettings.whatsappContact;
       if (!data.settings.statusBadgeText) data.settings.statusBadgeText = defaultSettings.statusBadgeText;
       if (!data.settings.statusBadgeType) data.settings.statusBadgeType = defaultSettings.statusBadgeType;
       if (!data.settings.statusSubtext) data.settings.statusSubtext = defaultSettings.statusSubtext;
@@ -1051,8 +1099,9 @@ export function readDatabase(): DatabaseSchema {
       if (!data.settings.quickToolsBtn1Text) data.settings.quickToolsBtn1Text = defaultSettings.quickToolsBtn1Text;
       if (!data.settings.quickToolsBtn2Text) data.settings.quickToolsBtn2Text = defaultSettings.quickToolsBtn2Text;
       if (!data.settings.footerText) data.settings.footerText = defaultSettings.footerText;
-      if (!data.keys || !Array.isArray(data.keys)) {
-        data.keys = [];
+      if (!data.keys || !Array.isArray(data.keys) || data.keys.length === 0) {
+        data.keys = [JSON.parse(JSON.stringify(defaultDemoKey))];
+        modified = true;
       }
       if (!data.transactions || !Array.isArray(data.transactions)) data.transactions = [];
       if (!data.adminTokens) data.adminTokens = ["mawwwhub-permanent-session-token"];
@@ -1069,7 +1118,7 @@ export function readDatabase(): DatabaseSchema {
   // Create initial default DB (preserves /dev settings, no old order data)
   const initialDb: DatabaseSchema = {
     settings: JSON.parse(JSON.stringify(defaultSettings)),
-    keys: [],
+    keys: [JSON.parse(JSON.stringify(defaultDemoKey))],
     transactions: [],
     adminTokens: ["mawwwhub-permanent-session-token"]
   };
@@ -1103,7 +1152,7 @@ export function resetAllDatabaseData(): DatabaseSchema {
 
   const cleanDb: DatabaseSchema = {
     settings: current.settings,
-    keys: nonOrderKeys,
+    keys: nonOrderKeys.length > 0 ? nonOrderKeys : [JSON.parse(JSON.stringify(defaultDemoKey))],
     transactions: [],
     adminTokens: current.adminTokens || ["mawwwhub-permanent-session-token"]
   };

@@ -12,11 +12,12 @@ import {
   DUMMY_ACCOUNT_NUMBERS,
   DUMMY_API_KEY,
   DUMMY_QRIS_ID
-} from './db';
+} from './db.js';
 
 const ADMIN_USER = "mawwwhub";
 const ADMIN_PASS = "mawwwhub201122@";
 const ADMIN_FIXED_TOKEN = "mawwwhub_auth_permanent_key_201122";
+const ADMIN_LEGACY_TOKEN = "mawwwhub-permanent-session-token";
 
 export function isArexansPayConfigured(arexanspay?: AppSettings['arexanspay']): boolean {
   if (!arexanspay) return false;
@@ -80,11 +81,24 @@ export function createExpressApp() {
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true }));
 
+  // Normalize Vercel rewrite path if ?__path= is passed by vercel.json
+  app.use((req: Request, _res: Response, next: () => void) => {
+    const rewrittenPath = req.query.__path;
+    if (typeof rewrittenPath === 'string' && rewrittenPath.length > 0) {
+      const urlObj = new URL(req.url, 'http://localhost');
+      urlObj.searchParams.delete('__path');
+      const cleanSearch = urlObj.searchParams.toString();
+      const cleanPath = rewrittenPath.replace(/^\/+/, '');
+      req.url = `/api/${cleanPath}${cleanSearch ? '?' + cleanSearch : ''}`;
+    }
+    next();
+  });
+
   // Admin auth middleware
   function requireAdmin(req: Request, res: Response, next: () => void) {
     const authHeader = req.headers.authorization;
     const token = req.headers['x-admin-token'] || (authHeader && authHeader.replace(/^Bearer\s+/, ''));
-    if (token === ADMIN_FIXED_TOKEN) {
+    if (token === ADMIN_FIXED_TOKEN || token === ADMIN_LEGACY_TOKEN) {
       return next();
     }
     const db = readDatabase();
