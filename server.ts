@@ -2,8 +2,8 @@ import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import express, { Request, Response } from 'express';
-import { createExpressApp } from './server/app.js';
+import express, { type Request, type Response } from 'express';
+import { createExpressApp } from './server/app.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

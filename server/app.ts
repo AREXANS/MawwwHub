@@ -1,18 +1,20 @@
-import express, { Request, Response } from 'express';
+import express, { type Request, type Response } from 'express';
 import QRCode from 'qrcode';
 import {
   readDatabase,
   writeDatabase,
   resetAllDatabaseData,
   generateKeyString,
-  Transaction,
-  IssuedKey,
-  AppSettings,
-  PaymentMethodConfig,
   DUMMY_ACCOUNT_NUMBERS,
   DUMMY_API_KEY,
   DUMMY_QRIS_ID
-} from './db.js';
+} from './db.ts';
+import type {
+  Transaction,
+  IssuedKey,
+  AppSettings,
+  PaymentMethodConfig
+} from './db.ts';
 
 const ADMIN_USER = "mawwwhub";
 const ADMIN_PASS = "mawwwhub201122@";
@@ -37,12 +39,6 @@ export function getPublicPaymentMethods(settings: AppSettings): PaymentMethodCon
     settings.arexanspay.qrisId.trim() !== DUMMY_QRIS_ID
   );
 
-  // Jika simulasi dinonaktifkan dan dev belum mengisi integrasi payment gateway ArexansPay di /dev,
-  // metode pembayaran (QRIS / E-Wallet / Bank) tidak boleh muncul sama sekali
-  if (!simulationEnabled && !gatewayReady) {
-    return [];
-  }
-
   return (settings.paymentMethods || []).filter(m => {
     if (!m.isActive) return false;
 
@@ -50,14 +46,15 @@ export function getPublicPaymentMethods(settings: AppSettings): PaymentMethodCon
       return true;
     }
 
-    // Saat simulasi dinonaktifkan, hanya tampilkan metode yang benar-benar sudah dikonfigurasi di /dev
+    // Saat simulasi dinonaktifkan:
     if (m.category === 'qris') {
-      return gatewayReady && qrisIdReady;
+      const hasManualQris = Boolean(m.accountNumber && m.accountNumber.trim().length > 0);
+      return (gatewayReady && qrisIdReady) || hasManualQris;
     }
 
     const cleanAcc = (m.accountNumber || '').trim();
     const hasValidAccount = cleanAcc.length > 0;
-    return gatewayReady && hasValidAccount;
+    return gatewayReady || hasValidAccount;
   });
 }
 
@@ -208,12 +205,30 @@ export function createExpressApp() {
       arexanspay: {
         ...db.settings.arexanspay,
         ...(updated.arexanspay || {})
-      }
+      },
+      adBanner: updated.adBanner ? {
+        ...db.settings.adBanner,
+        ...updated.adBanner
+      } : db.settings.adBanner
     };
+
+    if (Array.isArray(updated.packages)) {
+      db.settings.packages = updated.packages;
+    }
+    if (Array.isArray(updated.paymentMethods)) {
+      db.settings.paymentMethods = updated.paymentMethods;
+    }
+    if (Array.isArray(updated.heroPills)) {
+      db.settings.heroPills = updated.heroPills;
+    }
+    if (Array.isArray(updated.scriptFeatures)) {
+      db.settings.scriptFeatures = updated.scriptFeatures;
+    }
+
     writeDatabase(db);
     return res.json({
       success: true,
-      message: "Pengaturan MawwwHub berhasil disimpan!",
+      message: "Pengaturan MawwwHub berhasil disimpan secara permanen!",
       data: db.settings
     });
   });

@@ -1018,100 +1018,53 @@ export function readDatabase(): DatabaseSchema {
   if (raw) {
     try {
       const data = JSON.parse(raw);
-      let modified = false;
       if (!data.settings) {
         data.settings = JSON.parse(JSON.stringify(defaultSettings));
-        modified = true;
-      }
-      if (data.settings.enableOrderUsername === undefined) data.settings.enableOrderUsername = false;
-      if (data.settings.enableOrderWhatsapp === undefined) data.settings.enableOrderWhatsapp = false;
-      if (data.settings.enableCustomKeyOrder === undefined) data.settings.enableCustomKeyOrder = true;
-      if (data.settings.enableHwidLock === undefined) data.settings.enableHwidLock = true;
-      if (data.settings.maxHwidPerKey === undefined) data.settings.maxHwidPerKey = 1;
-      if (!data.settings.rawScriptBody || data.settings.rawScriptBody.includes("MawwwHub_Indicator") || data.settings.rawScriptBody.includes("DurationCard")) {
-        data.settings.rawScriptBody = defaultSettings.rawScriptBody;
-        modified = true;
-      }
-      // Sanitize old loadstring template that leaked raw HWID to public
-      if (!data.settings.loadstringTemplate || data.settings.loadstringTemplate.includes("gethwid") || data.settings.loadstringTemplate.includes("getgenv") || data.settings.loadstringTemplate.includes("RbxAnalyticsService")) {
-        data.settings.loadstringTemplate = defaultSettings.loadstringTemplate;
-        modified = true;
-      }
-      if (!data.settings.paymentMethods || !Array.isArray(data.settings.paymentMethods) || data.settings.paymentMethods.length === 0) {
-        data.settings.paymentMethods = JSON.parse(JSON.stringify(defaultPaymentMethods));
-        modified = true;
       } else {
-        const hasAnyAccountNumber = data.settings.paymentMethods.some(
-          (m: PaymentMethodConfig) => m.category !== 'qris' && m.accountNumber && m.accountNumber.trim().length > 0
-        );
-        if (!hasAnyAccountNumber) {
-          data.settings.paymentMethods = JSON.parse(JSON.stringify(defaultPaymentMethods));
-          modified = true;
+        // Preserve all saved settings, only fill missing top-level keys if undefined
+        const saved = data.settings;
+        data.settings = {
+          ...defaultSettings,
+          ...saved,
+          arexanspay: {
+            ...defaultSettings.arexanspay,
+            ...(saved.arexanspay || {})
+          },
+          adBanner: saved.adBanner ? {
+            ...defaultSettings.adBanner,
+            ...saved.adBanner
+          } : defaultSettings.adBanner
+        };
+
+        // Explicitly preserve saved arrays
+        if (Array.isArray(saved.packages)) {
+          data.settings.packages = saved.packages;
+        }
+        if (Array.isArray(saved.paymentMethods)) {
+          data.settings.paymentMethods = saved.paymentMethods;
+        }
+        if (Array.isArray(saved.heroPills)) {
+          data.settings.heroPills = saved.heroPills;
+        }
+        if (Array.isArray(saved.scriptFeatures)) {
+          data.settings.scriptFeatures = saved.scriptFeatures;
         }
       }
 
-      if (!data.settings.arexanspay) {
-        data.settings.arexanspay = JSON.parse(JSON.stringify(defaultSettings.arexanspay));
-        modified = true;
-      } else {
-        if (!data.settings.arexanspay.apiUrl) {
-          data.settings.arexanspay.apiUrl = defaultSettings.arexanspay.apiUrl;
-          modified = true;
-        }
-        if (!data.settings.arexanspay.apiKey && !data.settings.arexanspay.qrisId && !data.settings.arexanspay.webhookSecret) {
-          data.settings.arexanspay = JSON.parse(JSON.stringify(defaultSettings.arexanspay));
-          modified = true;
-        }
-        if (data.settings.arexanspay.enableSimulation === undefined) {
-          data.settings.arexanspay.enableSimulation = true;
-          modified = true;
-        }
-      }
-
-      if (!data.settings.packages || !Array.isArray(data.settings.packages) || data.settings.packages.length === 0) {
-        data.settings.packages = JSON.parse(JSON.stringify(defaultSettings.packages));
-        modified = true;
-      }
-      if (!data.settings.scriptFeatures || !Array.isArray(data.settings.scriptFeatures) || data.settings.scriptFeatures.length === 0) {
-        data.settings.scriptFeatures = JSON.parse(JSON.stringify(defaultSettings.scriptFeatures));
-        modified = true;
-      }
-      if (!data.settings.adBanner) {
-        data.settings.adBanner = defaultAdBanner;
-      }
-      if (!data.settings.heroPills || !Array.isArray(data.settings.heroPills) || data.settings.heroPills.length === 0) {
-        data.settings.heroPills = defaultHeroPills;
-      }
-      if (!data.settings.brandName) data.settings.brandName = defaultSettings.brandName;
-      if (!data.settings.gameName) data.settings.gameName = defaultSettings.gameName;
-      if (!data.settings.heroHeadline) data.settings.heroHeadline = defaultSettings.heroHeadline;
-      if (!data.settings.heroSubheadline) data.settings.heroSubheadline = defaultSettings.heroSubheadline;
-      if (!data.settings.scriptDescription) data.settings.scriptDescription = defaultSettings.scriptDescription;
-      if (!data.settings.announcementText) data.settings.announcementText = defaultSettings.announcementText;
-      if (!data.settings.discordUrl) data.settings.discordUrl = defaultSettings.discordUrl;
-      if (!data.settings.telegramUrl) data.settings.telegramUrl = defaultSettings.telegramUrl;
-      if (!data.settings.whatsappContact) data.settings.whatsappContact = defaultSettings.whatsappContact;
-      if (!data.settings.statusBadgeText) data.settings.statusBadgeText = defaultSettings.statusBadgeText;
-      if (!data.settings.statusBadgeType) data.settings.statusBadgeType = defaultSettings.statusBadgeType;
-      if (!data.settings.statusSubtext) data.settings.statusSubtext = defaultSettings.statusSubtext;
-      if (!data.settings.quickToolsTitle) data.settings.quickToolsTitle = defaultSettings.quickToolsTitle;
-      if (!data.settings.quickToolsDesc) data.settings.quickToolsDesc = defaultSettings.quickToolsDesc;
-      if (!data.settings.quickToolsBtn1Text) data.settings.quickToolsBtn1Text = defaultSettings.quickToolsBtn1Text;
-      if (!data.settings.quickToolsBtn2Text) data.settings.quickToolsBtn2Text = defaultSettings.quickToolsBtn2Text;
-      if (!data.settings.footerText) data.settings.footerText = defaultSettings.footerText;
-      if (!data.keys || !Array.isArray(data.keys) || data.keys.length === 0) {
+      if (!data.keys || !Array.isArray(data.keys)) {
         data.keys = [JSON.parse(JSON.stringify(defaultDemoKey))];
-        modified = true;
       }
-      if (!data.transactions || !Array.isArray(data.transactions)) data.transactions = [];
-      if (!data.adminTokens) data.adminTokens = ["mawwwhub-permanent-session-token"];
+      if (!data.transactions || !Array.isArray(data.transactions)) {
+        data.transactions = [];
+      }
+      if (!data.adminTokens || !Array.isArray(data.adminTokens)) {
+        data.adminTokens = ["mawwwhub-permanent-session-token", "mawwwhub_auth_permanent_key_201122"];
+      }
+
       inMemoryDb = data;
-      if (modified) {
-        writeDatabase(data);
-      }
       return data;
     } catch (err) {
-      console.error("Error reading database, creating default:", err);
+      console.error("Error reading database:", err);
     }
   }
 
@@ -1120,7 +1073,7 @@ export function readDatabase(): DatabaseSchema {
     settings: JSON.parse(JSON.stringify(defaultSettings)),
     keys: [JSON.parse(JSON.stringify(defaultDemoKey))],
     transactions: [],
-    adminTokens: ["mawwwhub-permanent-session-token"]
+    adminTokens: ["mawwwhub-permanent-session-token", "mawwwhub_auth_permanent_key_201122"]
   };
 
   inMemoryDb = initialDb;
@@ -1163,15 +1116,22 @@ export function resetAllDatabaseData(): DatabaseSchema {
 export function writeDatabase(db: DatabaseSchema): void {
   inMemoryDb = db;
   ensureDir();
+  const serialized = JSON.stringify(db, null, 2);
   try {
-    fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), 'utf8');
+    fs.writeFileSync(DB_FILE, serialized, 'utf8');
   } catch (err) {
-    // fallback if DB_FILE fails (e.g. read only)
-    try {
-      if (!IS_VERCEL) {
-        fs.writeFileSync(BACKUP_FILE, JSON.stringify(db, null, 2), 'utf8');
+    console.error("Failed to write to DB_FILE:", err);
+  }
+  try {
+    if (BACKUP_FILE !== DB_FILE) {
+      const backupDir = path.dirname(BACKUP_FILE);
+      if (!fs.existsSync(backupDir)) {
+        fs.mkdirSync(backupDir, { recursive: true });
       }
-    } catch (e) {}
+      fs.writeFileSync(BACKUP_FILE, serialized, 'utf8');
+    }
+  } catch (e) {
+    console.error("Failed to write to BACKUP_FILE:", e);
   }
 }
 

@@ -34,7 +34,7 @@ export default function App() {
   // Fetch Public Settings
   const fetchSettings = async () => {
     try {
-      const res = await fetch('/api/settings');
+      const res = await fetch(`/api/settings?_t=${Date.now()}`);
       const data = await res.json();
       if (data.success && data.data) {
         setSettings(data.data);
@@ -48,6 +48,56 @@ export default function App() {
 
   useEffect(() => {
     fetchSettings();
+
+    // Realtime polling every 3 seconds
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchSettings();
+      }
+    }, 3000);
+
+    // Listen to local update events (e.g. from /dev in same window)
+    const handleLocalUpdate = () => {
+      fetchSettings();
+    };
+    window.addEventListener('mawwwhub_settings_updated', handleLocalUpdate);
+
+    // Listen to cross-tab storage sync
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'mawwwhub_settings_ts') {
+        fetchSettings();
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+
+    // Listen to BroadcastChannel across tabs
+    let bc: BroadcastChannel | null = null;
+    try {
+      bc = new BroadcastChannel('mawwwhub_channel');
+      bc.onmessage = (event) => {
+        if (event.data?.type === 'SETTINGS_UPDATED') {
+          fetchSettings();
+        }
+      };
+    } catch (e) {}
+
+    // Refetch when tab becomes active / focused
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        fetchSettings();
+      }
+    };
+    window.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', handleVisibility);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('mawwwhub_settings_updated', handleLocalUpdate);
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', handleVisibility);
+      if (bc) bc.close();
+    };
   }, []);
 
   const navigateTo = (path: string) => {

@@ -1101,18 +1101,14 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
         setSettings({
           ...DEFAULT_ADMIN_SETTINGS,
           ...s,
-          packages: Array.isArray(s.packages) && s.packages.length > 0 ? s.packages : DEFAULT_ADMIN_SETTINGS.packages,
-          paymentMethods: Array.isArray(s.paymentMethods) && s.paymentMethods.length > 0 ? s.paymentMethods : DEFAULT_ADMIN_SETTINGS.paymentMethods,
-          scriptFeatures: Array.isArray(s.scriptFeatures) && s.scriptFeatures.length > 0 ? s.scriptFeatures : DEFAULT_ADMIN_SETTINGS.scriptFeatures,
-          heroPills: Array.isArray(s.heroPills) && s.heroPills.length > 0 ? s.heroPills : DEFAULT_ADMIN_SETTINGS.heroPills,
+          packages: Array.isArray(s.packages) ? s.packages : DEFAULT_ADMIN_SETTINGS.packages,
+          paymentMethods: Array.isArray(s.paymentMethods) ? s.paymentMethods : DEFAULT_ADMIN_SETTINGS.paymentMethods,
+          scriptFeatures: Array.isArray(s.scriptFeatures) ? s.scriptFeatures : DEFAULT_ADMIN_SETTINGS.scriptFeatures,
+          heroPills: Array.isArray(s.heroPills) ? s.heroPills : DEFAULT_ADMIN_SETTINGS.heroPills,
           adBanner: s.adBanner ? { ...DEFAULT_ADMIN_SETTINGS.adBanner, ...s.adBanner } : DEFAULT_ADMIN_SETTINGS.adBanner,
           arexanspay: {
             ...DEFAULT_ADMIN_SETTINGS.arexanspay,
-            ...(s.arexanspay || {}),
-            apiUrl: s.arexanspay?.apiUrl || DEFAULT_ADMIN_SETTINGS.arexanspay.apiUrl,
-            apiKey: s.arexanspay?.apiKey || DEFAULT_ADMIN_SETTINGS.arexanspay.apiKey,
-            qrisId: s.arexanspay?.qrisId || DEFAULT_ADMIN_SETTINGS.arexanspay.qrisId,
-            webhookSecret: s.arexanspay?.webhookSecret || DEFAULT_ADMIN_SETTINGS.arexanspay.webhookSecret
+            ...(s.arexanspay || {})
           }
         });
       }
@@ -1185,8 +1181,22 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
       });
       const data = await res.json();
       if (data.success) {
+        if (data.data) {
+          setSettings(data.data);
+        }
         setSaveSuccessMsg('Pengaturan MawwwHub berhasil disimpan secara permanen!');
         setTimeout(() => setSaveSuccessMsg(''), 4000);
+
+        // Realtime broadcast so public page and other tabs update instantly
+        window.dispatchEvent(new CustomEvent('mawwwhub_settings_updated', { detail: data.data }));
+        try {
+          const bc = new BroadcastChannel('mawwwhub_channel');
+          bc.postMessage({ type: 'SETTINGS_UPDATED', data: data.data });
+          bc.close();
+        } catch (e) {}
+        try {
+          localStorage.setItem('mawwwhub_settings_ts', Date.now().toString());
+        } catch (e) {}
       } else {
         setSaveErrorMsg(data.message || 'Gagal menyimpan pengaturan');
       }
