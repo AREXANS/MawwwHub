@@ -21,6 +21,57 @@ const ADMIN_PASS = "mawwwhub201122@";
 const ADMIN_FIXED_TOKEN = "mawwwhub_auth_permanent_key_201122";
 const ADMIN_LEGACY_TOKEN = "mawwwhub-permanent-session-token";
 
+// Active SSE client connections for 0-latency realtime updates
+const sseClients = new Set<Response>();
+
+export function getPublicSettingsPayload(s: AppSettings, baseUrl: string) {
+  return {
+    brandName: s.brandName,
+    logoUrl: s.logoUrl || '',
+    tagline: s.tagline,
+    heroHeadline: s.heroHeadline,
+    heroSubheadline: s.heroSubheadline,
+    statusBadgeText: s.statusBadgeText,
+    statusBadgeType: s.statusBadgeType,
+    statusSubtext: s.statusSubtext,
+    heroPills: s.heroPills,
+    adBanner: s.adBanner,
+    quickToolsTitle: s.quickToolsTitle,
+    quickToolsDesc: s.quickToolsDesc,
+    quickToolsBtn1Text: s.quickToolsBtn1Text,
+    quickToolsBtn2Text: s.quickToolsBtn2Text,
+    footerText: s.footerText,
+    gameName: s.gameName,
+    scriptDescription: s.scriptDescription,
+    scriptFeatures: s.scriptFeatures,
+    discordUrl: s.discordUrl,
+    telegramUrl: s.telegramUrl,
+    whatsappContact: s.whatsappContact,
+    announcementText: s.announcementText,
+    enableOrderUsername: s.enableOrderUsername ?? false,
+    enableOrderWhatsapp: s.enableOrderWhatsapp ?? false,
+    enableCustomKeyOrder: s.enableCustomKeyOrder ?? true,
+    packages: (s.packages || []).filter(p => p.isActive),
+    paymentMethods: getPublicPaymentMethods(s),
+    defaultChannel: s.arexanspay?.defaultChannel || 'qris',
+    simulationEnabled: s.arexanspay?.enableSimulation ?? false,
+    gatewayConfigured: isArexansPayConfigured(s.arexanspay),
+    apiBase: baseUrl
+  };
+}
+
+export function broadcastSettingsUpdate(settings: AppSettings, baseUrl = '') {
+  const payload = getPublicSettingsPayload(settings, baseUrl);
+  const sseData = `data: ${JSON.stringify(payload)}\n\n`;
+  for (const client of sseClients) {
+    try {
+      client.write(sseData);
+    } catch (e) {
+      sseClients.delete(client);
+    }
+  }
+}
+
 export function isArexansPayConfigured(arexanspay?: AppSettings['arexanspay']): boolean {
   if (!arexanspay) return false;
   const apiUrl = (arexanspay.apiUrl || '').trim();
@@ -143,52 +194,58 @@ export function createExpressApp() {
     return res.status(401).json({ success: false, valid: false });
   });
 
-  // 3. Public Settings
-  api.get('/settings', (req: Request, res: Response) => {
+  // 3. Public Settings Realtime SSE Stream
+  api.get('/settings/stream', (req: Request, res: Response) => {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+    res.flushHeaders?.();
+
     const db = readDatabase();
     const baseUrl = getAppBaseUrl(req);
-    const s = db.settings;
+    const initialPayload = getPublicSettingsPayload(db.settings, baseUrl);
+    res.write(`data: ${JSON.stringify(initialPayload)}\n\n`);
+
+    sseClients.add(res);
+
+    // Keepalive ping every 15 seconds to prevent proxy disconnects
+    const pingInterval = setInterval(() => {
+      try {
+        res.write(': keepalive\n\n');
+      } catch (e) {
+        clearInterval(pingInterval);
+        sseClients.delete(res);
+      }
+    }, 15000);
+
+    req.on('close', () => {
+      clearInterval(pingInterval);
+      sseClients.delete(res);
+    });
+  });
+
+  // 3b. Public Settings (No-Cache Guaranteed)
+  api.get('/settings', (req: Request, res: Response) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+
+    const db = readDatabase(true); // force reload from disk to ensure latest data
+    const baseUrl = getAppBaseUrl(req);
     return res.json({
       success: true,
-      data: {
-        brandName: s.brandName,
-        logoUrl: s.logoUrl || '',
-        tagline: s.tagline,
-        heroHeadline: s.heroHeadline,
-        heroSubheadline: s.heroSubheadline,
-        statusBadgeText: s.statusBadgeText,
-        statusBadgeType: s.statusBadgeType,
-        statusSubtext: s.statusSubtext,
-        heroPills: s.heroPills,
-        adBanner: s.adBanner,
-        quickToolsTitle: s.quickToolsTitle,
-        quickToolsDesc: s.quickToolsDesc,
-        quickToolsBtn1Text: s.quickToolsBtn1Text,
-        quickToolsBtn2Text: s.quickToolsBtn2Text,
-        footerText: s.footerText,
-        gameName: s.gameName,
-        scriptDescription: s.scriptDescription,
-        scriptFeatures: s.scriptFeatures,
-        discordUrl: s.discordUrl,
-        telegramUrl: s.telegramUrl,
-        whatsappContact: s.whatsappContact,
-        announcementText: s.announcementText,
-        enableOrderUsername: s.enableOrderUsername ?? false,
-        enableOrderWhatsapp: s.enableOrderWhatsapp ?? false,
-        enableCustomKeyOrder: s.enableCustomKeyOrder ?? true,
-        packages: s.packages.filter(p => p.isActive),
-        paymentMethods: getPublicPaymentMethods(s),
-        defaultChannel: s.arexanspay.defaultChannel || 'qris',
-        simulationEnabled: s.arexanspay.enableSimulation ?? false,
-        gatewayConfigured: isArexansPayConfigured(s.arexanspay),
-        apiBase: baseUrl
-      }
+      data: getPublicSettingsPayload(db.settings, baseUrl)
     });
   });
 
   // 4. Admin Get Full Settings
   api.get('/admin/settings', requireAdmin, (_req: Request, res: Response) => {
-    const db = readDatabase();
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+
+    const db = readDatabase(true);
     return res.json({
       success: true,
       data: db.settings
@@ -197,7 +254,7 @@ export function createExpressApp() {
 
   // 5. Admin Update Settings
   api.post('/admin/settings', requireAdmin, (req: Request, res: Response) => {
-    const db = readDatabase();
+    const db = readDatabase(true);
     const updated = req.body as Partial<AppSettings>;
     db.settings = {
       ...db.settings,
@@ -206,8 +263,8 @@ export function createExpressApp() {
         ...db.settings.arexanspay,
         ...(updated.arexanspay || {})
       },
-      adBanner: updated.adBanner ? {
-        ...db.settings.adBanner,
+      adBanner: updated.adBanner !== undefined ? {
+        ...(db.settings.adBanner || {}),
         ...updated.adBanner
       } : db.settings.adBanner
     };
@@ -226,9 +283,12 @@ export function createExpressApp() {
     }
 
     writeDatabase(db);
+    const baseUrl = getAppBaseUrl(req);
+    broadcastSettingsUpdate(db.settings, baseUrl);
+
     return res.json({
       success: true,
-      message: "Pengaturan MawwwHub berhasil disimpan secara permanen!",
+      message: "Pengaturan MawwwHub berhasil disimpan secara permanen & realtime!",
       data: db.settings
     });
   });
@@ -239,9 +299,12 @@ export function createExpressApp() {
     if (!imageBase64) {
       return res.status(400).json({ success: false, message: "File gambar tidak ditemukan." });
     }
-    const db = readDatabase();
+    const db = readDatabase(true);
     db.settings.logoUrl = imageBase64;
     writeDatabase(db);
+    const baseUrl = getAppBaseUrl(req);
+    broadcastSettingsUpdate(db.settings, baseUrl);
+
     return res.json({
       success: true,
       message: "Logo berhasil di-upload dan diterapkan!",
@@ -250,8 +313,11 @@ export function createExpressApp() {
   });
 
   // 5c. Admin Reset / Hapus Data Bekas Orderan
-  api.post('/admin/reset-data', requireAdmin, (_req: Request, res: Response) => {
+  api.post('/admin/reset-data', requireAdmin, (req: Request, res: Response) => {
     const cleanDb = resetAllDatabaseData();
+    const baseUrl = getAppBaseUrl(req);
+    broadcastSettingsUpdate(cleanDb.settings, baseUrl);
+
     return res.json({
       success: true,
       message: "Semua data bekas orderan (Riwayat Transaksi & Key Orderan) berhasil dihapus! Data pengaturan di /dev tetap aman.",

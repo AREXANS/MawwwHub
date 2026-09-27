@@ -225,8 +225,17 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
   // Tabs: 'stats', 'packages', 'ads', 'arexanspay', 'keys', 'script', 'loadstring'
   const [activeTab, setActiveTab] = useState<'stats' | 'packages' | 'ads' | 'arexanspay' | 'keys' | 'script' | 'loadstring'>('stats');
 
-  // Data states (initialized with defaults so /dev is never blank)
-  const [settings, setSettings] = useState<FullAdminSettings | null>(DEFAULT_ADMIN_SETTINGS);
+  // Data states (initialized with cached or defaults so /dev never resets to default)
+  const [settings, setSettings] = useState<FullAdminSettings | null>(() => {
+    try {
+      const cached = localStorage.getItem('mawwwhub_saved_admin_settings');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && parsed.brandName) return parsed;
+      }
+    } catch (e) {}
+    return DEFAULT_ADMIN_SETTINGS;
+  });
   const [keys, setKeys] = useState<IssuedKey[]>([DEFAULT_DEMO_KEY]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [stats, setStats] = useState<AdminStats | null>({
@@ -240,6 +249,54 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
   const [saveSuccessMsg, setSaveSuccessMsg] = useState('');
   const [saveErrorMsg, setSaveErrorMsg] = useState('');
   const [copiedText, setCopiedText] = useState('');
+
+  // Save Settings permanently & broadcast realtime
+  const saveSettingsToServer = async (payloadToSave?: FullAdminSettings) => {
+    const payload = payloadToSave || settings;
+    if (!payload) return;
+    setSaveSuccessMsg('');
+    setSaveErrorMsg('');
+
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-token': token
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        setSettings(data.data);
+        try {
+          localStorage.setItem('mawwwhub_saved_admin_settings', JSON.stringify(data.data));
+          localStorage.setItem('mawwwhub_settings_ts', Date.now().toString());
+        } catch (e) {}
+
+        setSaveSuccessMsg('Pengaturan MawwwHub berhasil disimpan secara permanen!');
+        setTimeout(() => setSaveSuccessMsg(''), 4000);
+
+        // Realtime broadcast so public page and other tabs update instantly
+        window.dispatchEvent(new CustomEvent('mawwwhub_settings_updated', { detail: data.data }));
+        try {
+          const bc = new BroadcastChannel('mawwwhub_channel');
+          bc.postMessage({ type: 'SETTINGS_UPDATED', data: data.data });
+          bc.close();
+        } catch (e) {}
+      } else {
+        setSaveErrorMsg(data.message || 'Gagal menyimpan pengaturan');
+      }
+    } catch (err: any) {
+      setSaveErrorMsg('Error menyimpan: ' + err.message);
+    }
+  };
+
+  const handleSaveSettings = () => {
+    if (settings) {
+      saveSettingsToServer(settings);
+    }
+  };
 
   // Key Generator form
   const [genDuration, setGenDuration] = useState('7');
@@ -288,8 +345,10 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
     reader.onload = (event) => {
       const base64 = event.target?.result as string;
       if (base64) {
-        setSettings({ ...settings, logoUrl: base64 });
-        setLogoUploadMsg(`File "${file.name}" berhasil dimuat! Klik "Simpan Perubahan" untuk menyimpan permanen.`);
+        const newSettings = { ...settings, logoUrl: base64 };
+        setSettings(newSettings);
+        saveSettingsToServer(newSettings);
+        setLogoUploadMsg(`Logo "${file.name}" berhasil diunggah & disimpan permanen!`);
         setTimeout(() => setLogoUploadMsg(''), 5000);
       }
       setIsUploadingLogo(false);
@@ -303,7 +362,9 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
 
   const handleRemoveLogo = () => {
     if (!settings) return;
-    setSettings({ ...settings, logoUrl: '' });
+    const newSettings = { ...settings, logoUrl: '' };
+    setSettings(newSettings);
+    saveSettingsToServer(newSettings);
     setLogoUploadMsg('Logo custom dihapus. Icon default akan digunakan.');
     setTimeout(() => setLogoUploadMsg(''), 4000);
   };
@@ -328,10 +389,10 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
     e.preventDefault();
     if (!settings) return;
     const currentMethods = settings.paymentMethods || [];
+    let updated: PaymentMethodConfig[];
 
     if (editingMethod) {
-      const updated = currentMethods.map(m => m.id === editingMethod.id ? { ...m, ...methodFormData } as PaymentMethodConfig : m);
-      setSettings({ ...settings, paymentMethods: updated });
+      updated = currentMethods.map(m => m.id === editingMethod.id ? { ...m, ...methodFormData } as PaymentMethodConfig : m);
     } else {
       const cleanCode = (methodFormData.code || methodFormData.id || 'method').toLowerCase().replace(/[^a-z0-9_]/g, '');
       const newMethod: PaymentMethodConfig = {
@@ -345,9 +406,12 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
         isActive: methodFormData.isActive ?? true,
         isDefault: !!methodFormData.isDefault
       };
-      setSettings({ ...settings, paymentMethods: [...currentMethods, newMethod] });
+      updated = [...currentMethods, newMethod];
     }
 
+    const newSettings = { ...settings, paymentMethods: updated };
+    setSettings(newSettings);
+    saveSettingsToServer(newSettings);
     setIsMethodModalOpen(false);
     setEditingMethod(null);
   };
@@ -356,7 +420,9 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
     if (!settings) return;
     if (confirm("Hapus metode pembayaran ini dari daftar toko?")) {
       const updated = (settings.paymentMethods || []).filter(m => m.id !== methodId);
-      setSettings({ ...settings, paymentMethods: updated });
+      const newSettings = { ...settings, paymentMethods: updated };
+      setSettings(newSettings);
+      saveSettingsToServer(newSettings);
     }
   };
 
@@ -368,7 +434,9 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
       }
       return m;
     });
-    setSettings({ ...settings, paymentMethods: updated });
+    const newSettings = { ...settings, paymentMethods: updated };
+    setSettings(newSettings);
+    saveSettingsToServer(newSettings);
   };
 
   const handleSetDefaultMethod = (methodId: string) => {
@@ -376,14 +444,16 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
     const updated = (settings.paymentMethods || []).map(m => {
       return { ...m, isDefault: m.id === methodId };
     });
-    setSettings({
+    const newSettings = {
       ...settings,
       paymentMethods: updated,
       arexanspay: {
         ...settings.arexanspay,
         defaultChannel: methodId
       }
-    });
+    };
+    setSettings(newSettings);
+    saveSettingsToServer(newSettings);
   };
 
   const handleResetDefaultMethods = () => {
@@ -404,11 +474,12 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
         { id: 'bank_bsi', name: 'Bank Syariah Indonesia (BSI)', code: 'bsi', category: 'bank', accountNumber: '7192837495', accountHolder: 'MawwwHub Store', instructions: 'Transfer via BSI Mobile. Transfer nominal tepat untuk aktivasi instan.', isActive: true },
         { id: 'bank_permata', name: 'Bank Permata', code: 'permata', category: 'bank', accountNumber: '49281729384', accountHolder: 'MawwwHub Store', instructions: 'Transfer via PermataMobile X atau ATM Permata.', isActive: false }
       ];
-      setSettings({
+      const newSettings = {
         ...settings,
         paymentMethods: defaultMethods
-      });
-      alert("Metode pembayaran telah dikembalikan ke daftar standar. Klik 'Simpan Gateway' untuk menyimpan perubahan.");
+      };
+      setSettings(newSettings);
+      saveSettingsToServer(newSettings);
     }
   };
 
@@ -450,20 +521,24 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
   const handleAddFeature = () => {
     if (!settings || !newFeatureText.trim()) return;
     const current = settings.scriptFeatures || [];
-    setSettings({ ...settings, scriptFeatures: [...current, newFeatureText.trim()] });
+    const newSettings = { ...settings, scriptFeatures: [...current, newFeatureText.trim()] };
+    setSettings(newSettings);
+    saveSettingsToServer(newSettings);
     setNewFeatureText('');
   };
   const handleRemoveFeature = (idx: number) => {
     if (!settings) return;
     const current = [...(settings.scriptFeatures || [])];
     current.splice(idx, 1);
-    setSettings({ ...settings, scriptFeatures: current });
+    const newSettings = { ...settings, scriptFeatures: current };
+    setSettings(newSettings);
+    saveSettingsToServer(newSettings);
   };
 
   const handleApplyViolenceDistrictPreset = () => {
     if (!settings) return;
-    if (confirm("Terapkan preset lengkap Violence District? Ini akan memperbarui teks judul, deskripsi, fitur, dan highlight.")) {
-      setSettings({
+    if (confirm("Terapkan preset lengkap Violence District? Ini akan memperbarui teks judul, deskripsi, fitur, dan highlight secara permanen.")) {
+      const newSettings: FullAdminSettings = {
         ...settings,
         gameName: "Violence District",
         heroHeadline: "MawwwHub VIP - Violence District Script",
@@ -490,8 +565,9 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
           { id: 'pill-3', icon: 'check', title: 'Multi-Payment Otomatis', description: 'Mendukung QRIS, DANA, GoPay, OVO, BCA, BRI, Mandiri, SeaBank.' },
           { id: 'pill-4', icon: 'sparkles', title: 'Violence District VIP', description: 'Eksklusif untuk Roblox Violence District, support PC & Mobile.' }
         ]
-      });
-      alert("Preset Violence District telah dimuat ke form! Klik tombol hijau 'Simpan Perubahan' di atas untuk menyimpan permanen.");
+      };
+      setSettings(newSettings);
+      saveSettingsToServer(newSettings);
     }
   };
 
@@ -1053,11 +1129,12 @@ task.spawn(function()
 end)
 
 print("[MawwwHub] Violence District VIP script loaded successfully.")`;
-      setSettings({
+      const newSettings = {
         ...settings,
         rawScriptBody: violenceDistrictLua
-      });
-      alert("Kode mentah Lua telah di-reset ke Violence District VIP Hub! Klik tombol hijau 'Simpan Kode Mentah' untuk menyimpan.");
+      };
+      setSettings(newSettings);
+      saveSettingsToServer(newSettings);
     }
   };
 
@@ -1098,19 +1175,23 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
 
       if (dataSettings && dataSettings.success && dataSettings.data) {
         const s = dataSettings.data;
-        setSettings({
+        const resolved: FullAdminSettings = {
           ...DEFAULT_ADMIN_SETTINGS,
           ...s,
           packages: Array.isArray(s.packages) ? s.packages : DEFAULT_ADMIN_SETTINGS.packages,
           paymentMethods: Array.isArray(s.paymentMethods) ? s.paymentMethods : DEFAULT_ADMIN_SETTINGS.paymentMethods,
           scriptFeatures: Array.isArray(s.scriptFeatures) ? s.scriptFeatures : DEFAULT_ADMIN_SETTINGS.scriptFeatures,
           heroPills: Array.isArray(s.heroPills) ? s.heroPills : DEFAULT_ADMIN_SETTINGS.heroPills,
-          adBanner: s.adBanner ? { ...DEFAULT_ADMIN_SETTINGS.adBanner, ...s.adBanner } : DEFAULT_ADMIN_SETTINGS.adBanner,
+          adBanner: s.adBanner !== undefined ? s.adBanner : DEFAULT_ADMIN_SETTINGS.adBanner,
           arexanspay: {
             ...DEFAULT_ADMIN_SETTINGS.arexanspay,
             ...(s.arexanspay || {})
           }
-        });
+        };
+        setSettings(resolved);
+        try {
+          localStorage.setItem('mawwwhub_saved_admin_settings', JSON.stringify(resolved));
+        } catch (e) {}
       }
       if (dataKeys && dataKeys.success && Array.isArray(dataKeys.data)) {
         setKeys(dataKeys.data);
@@ -1160,48 +1241,6 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
     if (confirm('Apakah Anda yakin ingin logout dari MawwwHub /dev?')) {
       localStorage.removeItem('mawwwhub_admin_token');
       setToken('');
-      setSettings(DEFAULT_ADMIN_SETTINGS);
-    }
-  };
-
-  // Save Settings
-  const handleSaveSettings = async () => {
-    if (!settings) return;
-    setSaveSuccessMsg('');
-    setSaveErrorMsg('');
-
-    try {
-      const res = await fetch('/api/admin/settings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-admin-token': token
-        },
-        body: JSON.stringify(settings)
-      });
-      const data = await res.json();
-      if (data.success) {
-        if (data.data) {
-          setSettings(data.data);
-        }
-        setSaveSuccessMsg('Pengaturan MawwwHub berhasil disimpan secara permanen!');
-        setTimeout(() => setSaveSuccessMsg(''), 4000);
-
-        // Realtime broadcast so public page and other tabs update instantly
-        window.dispatchEvent(new CustomEvent('mawwwhub_settings_updated', { detail: data.data }));
-        try {
-          const bc = new BroadcastChannel('mawwwhub_channel');
-          bc.postMessage({ type: 'SETTINGS_UPDATED', data: data.data });
-          bc.close();
-        } catch (e) {}
-        try {
-          localStorage.setItem('mawwwhub_settings_ts', Date.now().toString());
-        } catch (e) {}
-      } else {
-        setSaveErrorMsg(data.message || 'Gagal menyimpan pengaturan');
-      }
-    } catch (err: any) {
-      setSaveErrorMsg('Error menyimpan: ' + err.message);
     }
   };
 
@@ -1399,10 +1438,10 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
     e.preventDefault();
     if (!settings) return;
 
+    let updated: ScriptPackage[];
     if (editingPkg) {
       // update
-      const updated = settings.packages.map(p => p.id === editingPkg.id ? { ...p, ...pkgFormData } as ScriptPackage : p);
-      setSettings({ ...settings, packages: updated });
+      updated = settings.packages.map(p => p.id === editingPkg.id ? { ...p, ...pkgFormData } as ScriptPackage : p);
     } else {
       // add new
       const newPkg: ScriptPackage = {
@@ -1415,8 +1454,11 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
         description: pkgFormData.description || '',
         isActive: pkgFormData.isActive ?? true
       };
-      setSettings({ ...settings, packages: [...settings.packages, newPkg] });
+      updated = [...settings.packages, newPkg];
     }
+    const newSettings = { ...settings, packages: updated };
+    setSettings(newSettings);
+    saveSettingsToServer(newSettings);
     setIsNewPkgModalOpen(false);
     setEditingPkg(null);
   };
@@ -1425,7 +1467,9 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
     if (!settings) return;
     if (confirm('Hapus paket ini?')) {
       const updated = settings.packages.filter(p => p.id !== pkgId);
-      setSettings({ ...settings, packages: updated });
+      const newSettings = { ...settings, packages: updated };
+      setSettings(newSettings);
+      saveSettingsToServer(newSettings);
     }
   };
 
@@ -2068,13 +2112,6 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
                     Pasang materi iklan promo, banner gambar, direct MP4 video, atau showcase YouTube di halaman depan toko.
                   </p>
                 </div>
-                <button
-                  onClick={handleSaveSettings}
-                  className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-1.5 self-start sm:self-auto"
-                >
-                  <Save className="w-3.5 h-3.5" />
-                  <span>Simpan Pengaturan Iklan</span>
-                </button>
               </div>
 
               {/* Master Switch */}
@@ -2399,13 +2436,6 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
                     String script ini yang akan otomatis didapatkan dan disalin oleh pembeli saat pembayaran mereka diverifikasi.
                   </p>
                 </div>
-                <button
-                  onClick={handleSaveSettings}
-                  className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-1.5"
-                >
-                  <Save className="w-3.5 h-3.5" />
-                  <span>Simpan Template</span>
-                </button>
               </div>
 
               <div>
@@ -2435,7 +2465,7 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
 
             {/* Raw Script Body (Kode Mentah Lua) Configuration */}
             <div className="rounded-2xl bg-[#120726] border border-purple-900/60 p-6 shadow-xl space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <h3 className="text-base font-bold text-white flex items-center gap-2">
                     <Cpu className="w-4 h-4 text-cyan-400" />
@@ -2445,7 +2475,7 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
                     Kode ini dieksekusi di Roblox ketika executor memanggil endpoint <code>/api/raw/:scriptId?key=...</code> setelah key diverifikasi aktif.
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div>
                   <button
                     type="button"
                     onClick={handleResetViolenceDistrictScript}
@@ -2454,13 +2484,6 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
                   >
                     <RefreshCw className="w-3.5 h-3.5 text-purple-300" />
                     <span>Reset ke Script Violence District</span>
-                  </button>
-                  <button
-                    onClick={handleSaveSettings}
-                    className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-md shadow-emerald-950/40"
-                  >
-                    <Save className="w-3.5 h-3.5" />
-                    <span>Simpan Kode Mentah</span>
                   </button>
                 </div>
               </div>
@@ -2546,7 +2569,7 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
                     Sesuai dokumentasi resmi <code>https://arexanspay.my.id/docs</code> untuk QRIS otomatis & Bank Transfer.
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div>
                   <a
                     href="https://arexanspay.my.id/docs"
                     target="_blank"
@@ -2556,13 +2579,6 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
                     <span>Buka Dokumentasi</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
-                  <button
-                    onClick={handleSaveSettings}
-                    className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-1.5"
-                  >
-                    <Save className="w-3.5 h-3.5" />
-                    <span>Simpan Gateway</span>
-                  </button>
                 </div>
               </div>
 
@@ -3329,13 +3345,6 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
                 >
                   <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                   <span>Preset Violence District</span>
-                </button>
-                <button
-                  onClick={handleSaveSettings}
-                  className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-md shadow-emerald-950/40"
-                >
-                  <Save className="w-3.5 h-3.5" />
-                  <span>Simpan Perubahan</span>
                 </button>
               </div>
             </div>

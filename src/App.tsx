@@ -49,20 +49,42 @@ export default function App() {
   useEffect(() => {
     fetchSettings();
 
-    // Realtime polling every 3 seconds
+    // 1. Instant 0-delay Server-Sent Events stream from backend
+    let eventSource: EventSource | null = null;
+    try {
+      eventSource = new EventSource('/api/settings/stream');
+      eventSource.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data);
+          if (payload && payload.brandName) {
+            setSettings(payload);
+            setIsLoading(false);
+          }
+        } catch (e) {}
+      };
+      eventSource.onerror = () => {
+        // SSE will automatically retry in background
+      };
+    } catch (e) {}
+
+    // 2. Realtime polling fallback every 2 seconds
     const interval = setInterval(() => {
       if (document.visibilityState === 'visible') {
         fetchSettings();
       }
-    }, 3000);
+    }, 2000);
 
-    // Listen to local update events (e.g. from /dev in same window)
-    const handleLocalUpdate = () => {
-      fetchSettings();
+    // 3. Listen to local update events (e.g. from /dev in same window)
+    const handleLocalUpdate = (e: any) => {
+      if (e?.detail) {
+        setSettings(e.detail);
+      } else {
+        fetchSettings();
+      }
     };
     window.addEventListener('mawwwhub_settings_updated', handleLocalUpdate);
 
-    // Listen to cross-tab storage sync
+    // 4. Listen to cross-tab storage sync
     const handleStorage = (e: StorageEvent) => {
       if (e.key === 'mawwwhub_settings_ts') {
         fetchSettings();
@@ -70,13 +92,17 @@ export default function App() {
     };
     window.addEventListener('storage', handleStorage);
 
-    // Listen to BroadcastChannel across tabs
+    // 5. Listen to BroadcastChannel across tabs
     let bc: BroadcastChannel | null = null;
     try {
       bc = new BroadcastChannel('mawwwhub_channel');
       bc.onmessage = (event) => {
         if (event.data?.type === 'SETTINGS_UPDATED') {
-          fetchSettings();
+          if (event.data.data) {
+            setSettings(event.data.data);
+          } else {
+            fetchSettings();
+          }
         }
       };
     } catch (e) {}
@@ -91,6 +117,7 @@ export default function App() {
     window.addEventListener('focus', handleVisibility);
 
     return () => {
+      if (eventSource) eventSource.close();
       clearInterval(interval);
       window.removeEventListener('mawwwhub_settings_updated', handleLocalUpdate);
       window.removeEventListener('storage', handleStorage);
@@ -181,18 +208,13 @@ export default function App() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 flex-shrink-0">
-              <button
-                onClick={() => setIsKeyCheckerOpen(true)}
-                className="px-4 py-2 rounded-xl bg-purple-900/60 hover:bg-purple-800 border border-purple-700/60 text-xs font-semibold text-purple-200 transition"
-              >
-                {settings?.quickToolsBtn1Text || "Cek Validasi Key"}
-              </button>
+            <div className="flex items-center gap-3 flex-shrink-0 w-full sm:w-auto">
               <button
                 onClick={() => setIsGuideOpen(true)}
-                className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-xs font-bold text-white transition shadow-md shadow-purple-900/40"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-xs font-bold text-white transition shadow-md shadow-purple-900/40 flex items-center justify-center gap-2"
               >
-                {settings?.quickToolsBtn2Text || "Tutorial Executor"}
+                <Terminal className="w-3.5 h-3.5 text-purple-200" />
+                <span>{settings?.quickToolsBtn2Text || "Tutorial Executor"}</span>
               </button>
             </div>
           </div>

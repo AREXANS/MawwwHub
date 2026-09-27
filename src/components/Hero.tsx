@@ -128,23 +128,15 @@ export const Hero: React.FC<HeroProps> = ({
           {subheadline}
         </p>
 
-        {/* Clean Call to Action Buttons */}
-        <div className="flex flex-wrap items-center justify-center gap-4">
+        {/* Clean Call to Action Button */}
+        <div className="flex items-center justify-center">
           <button
             onClick={onExplorePackages}
-            className="px-7 py-3.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-purple-600 via-violet-600 to-fuchsia-600 hover:from-purple-500 hover:to-violet-500 shadow-xl shadow-purple-900/50 hover:shadow-purple-700/50 border border-purple-400/30 transition transform hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2"
+            className="w-full sm:w-auto px-8 py-3.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-purple-600 via-violet-600 to-fuchsia-600 hover:from-purple-500 hover:to-violet-500 shadow-xl shadow-purple-900/50 hover:shadow-purple-700/50 border border-purple-400/30 transition transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2"
           >
             <Zap className="w-4 h-4 text-amber-300 fill-amber-300" />
             <span>Pilih Paket Script</span>
             <ChevronDown className="w-4 h-4 text-purple-200" />
-          </button>
-
-          <button
-            onClick={onOpenKeyChecker}
-            className="px-6 py-3.5 rounded-xl font-semibold text-sm text-purple-200 bg-[#160c2b] hover:bg-[#20103e] border border-purple-700/50 hover:border-purple-500/80 shadow-lg shadow-purple-950/40 transition flex items-center gap-2"
-          >
-            <Lock className="w-4 h-4 text-purple-400" />
-            <span>Cek Status / Masa Aktif Key</span>
           </button>
         </div>
 

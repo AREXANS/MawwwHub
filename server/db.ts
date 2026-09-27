@@ -5,11 +5,13 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// In Vercel serverless, root dir is read-only. Use /tmp if in Vercel or if write fails.
+// Storage directories and files
 const IS_VERCEL = !!process.env.VERCEL;
-const DATA_DIR = IS_VERCEL ? '/tmp/mawwwhub_data' : path.resolve(__dirname, '../data');
+const CWD = process.cwd();
+const DATA_DIR = IS_VERCEL ? '/tmp/mawwwhub_data' : path.resolve(CWD, 'data');
 const DB_FILE = path.join(DATA_DIR, 'store.json');
 const BACKUP_FILE = path.resolve(__dirname, '../data/store.json');
+const CWD_STORE = path.resolve(CWD, 'data/store.json');
 
 let inMemoryDb: DatabaseSchema | null = null;
 
@@ -996,23 +998,27 @@ function ensureDir() {
   }
 }
 
-export function readDatabase(): DatabaseSchema {
-  if (inMemoryDb) {
+export function readDatabase(forceReload = false): DatabaseSchema {
+  if (inMemoryDb && !forceReload) {
     return inMemoryDb;
   }
 
   ensureDir();
   
-  // Try loading from primary file, or fallback to repo backup file if on Vercel
+  // Try loading from primary file, or fallback to repo backup file or CWD file
   let raw: string | null = null;
-  if (fs.existsSync(DB_FILE)) {
-    try {
-      raw = fs.readFileSync(DB_FILE, 'utf8');
-    } catch (e) {}
-  } else if (fs.existsSync(BACKUP_FILE)) {
-    try {
-      raw = fs.readFileSync(BACKUP_FILE, 'utf8');
-    } catch (e) {}
+  const candidateFiles = Array.from(new Set([DB_FILE, CWD_STORE, BACKUP_FILE]));
+  
+  for (const candidate of candidateFiles) {
+    if (fs.existsSync(candidate)) {
+      try {
+        const content = fs.readFileSync(candidate, 'utf8');
+        if (content && content.trim().length > 10) {
+          raw = content;
+          break;
+        }
+      } catch (e) {}
+    }
   }
 
   if (raw) {
@@ -1021,7 +1027,7 @@ export function readDatabase(): DatabaseSchema {
       if (!data.settings) {
         data.settings = JSON.parse(JSON.stringify(defaultSettings));
       } else {
-        // Preserve all saved settings, only fill missing top-level keys if undefined
+        // Deep preserve all saved settings accurately; NEVER overwrite user configured settings with defaults!
         const saved = data.settings;
         data.settings = {
           ...defaultSettings,
@@ -1030,13 +1036,10 @@ export function readDatabase(): DatabaseSchema {
             ...defaultSettings.arexanspay,
             ...(saved.arexanspay || {})
           },
-          adBanner: saved.adBanner ? {
-            ...defaultSettings.adBanner,
-            ...saved.adBanner
-          } : defaultSettings.adBanner
+          adBanner: saved.adBanner !== undefined ? saved.adBanner : defaultSettings.adBanner
         };
 
-        // Explicitly preserve saved arrays
+        // Explicitly preserve saved arrays without clobbering with defaults
         if (Array.isArray(saved.packages)) {
           data.settings.packages = saved.packages;
         }
@@ -1077,11 +1080,7 @@ export function readDatabase(): DatabaseSchema {
   };
 
   inMemoryDb = initialDb;
-  try {
-    fs.writeFileSync(DB_FILE, JSON.stringify(initialDb, null, 2), 'utf8');
-  } catch (err) {
-    // If writing fails, inMemoryDb still persists during function life
-  }
+  writeDatabase(initialDb);
   return initialDb;
 }
 
@@ -1117,21 +1116,18 @@ export function writeDatabase(db: DatabaseSchema): void {
   inMemoryDb = db;
   ensureDir();
   const serialized = JSON.stringify(db, null, 2);
-  try {
-    fs.writeFileSync(DB_FILE, serialized, 'utf8');
-  } catch (err) {
-    console.error("Failed to write to DB_FILE:", err);
-  }
-  try {
-    if (BACKUP_FILE !== DB_FILE) {
-      const backupDir = path.dirname(BACKUP_FILE);
-      if (!fs.existsSync(backupDir)) {
-        fs.mkdirSync(backupDir, { recursive: true });
+  const targets = Array.from(new Set([DB_FILE, CWD_STORE, BACKUP_FILE]));
+  
+  for (const target of targets) {
+    try {
+      const dir = path.dirname(target);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
       }
-      fs.writeFileSync(BACKUP_FILE, serialized, 'utf8');
+      fs.writeFileSync(target, serialized, 'utf8');
+    } catch (err) {
+      console.error(`Failed to write database to ${target}:`, err);
     }
-  } catch (e) {
-    console.error("Failed to write to BACKUP_FILE:", e);
   }
 }
 
