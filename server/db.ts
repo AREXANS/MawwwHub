@@ -141,6 +141,7 @@ export interface AppSettings {
     defaultChannel: string;
   };
   packages: ScriptPackage[];
+  updatedAt?: number;
 }
 
 export const DUMMY_ACCOUNT_NUMBERS = [
@@ -1005,25 +1006,41 @@ export function readDatabase(forceReload = false): DatabaseSchema {
 
   ensureDir();
   
-  // Try loading from primary file, or fallback to repo backup file or CWD file
-  let raw: string | null = null;
+  // Inspect all candidate files and pick the candidate with the highest settings.updatedAt (or newest file mtime)
   const candidateFiles = Array.from(new Set([DB_FILE, CWD_STORE, BACKUP_FILE]));
-  
+  let bestCandidateData: any = null;
+  let bestCandidateTimestamp = -1;
+
   for (const candidate of candidateFiles) {
     if (fs.existsSync(candidate)) {
       try {
         const content = fs.readFileSync(candidate, 'utf8');
         if (content && content.trim().length > 10) {
-          raw = content;
-          break;
+          const parsed = JSON.parse(content);
+          if (parsed && typeof parsed === 'object') {
+            let fileTime = 0;
+            try {
+              fileTime = fs.statSync(candidate).mtimeMs || 0;
+            } catch (e) {}
+            const updatedTime = Number(parsed.settings?.updatedAt) || fileTime;
+            if (!bestCandidateData || updatedTime > bestCandidateTimestamp) {
+              bestCandidateData = parsed;
+              bestCandidateTimestamp = updatedTime;
+            }
+          }
         }
       } catch (e) {}
     }
   }
 
-  if (raw) {
+  // If in-memory DB is already newer than disk files, keep in-memory DB and sync it to disk
+  if (inMemoryDb && inMemoryDb.settings?.updatedAt && inMemoryDb.settings.updatedAt >= bestCandidateTimestamp) {
+    return inMemoryDb;
+  }
+
+  if (bestCandidateData) {
     try {
-      const data = JSON.parse(raw);
+      const data = bestCandidateData;
       if (!data.settings) {
         data.settings = JSON.parse(JSON.stringify(defaultSettings));
       } else {
@@ -1039,7 +1056,7 @@ export function readDatabase(forceReload = false): DatabaseSchema {
           adBanner: saved.adBanner !== undefined ? saved.adBanner : defaultSettings.adBanner
         };
 
-        // Explicitly preserve saved arrays without clobbering with defaults
+        // Explicitly preserve saved arrays and user properties without clobbering with defaults
         if (Array.isArray(saved.packages)) {
           data.settings.packages = saved.packages;
         }
@@ -1051,6 +1068,9 @@ export function readDatabase(forceReload = false): DatabaseSchema {
         }
         if (Array.isArray(saved.scriptFeatures)) {
           data.settings.scriptFeatures = saved.scriptFeatures;
+        }
+        if (saved.updatedAt) {
+          data.settings.updatedAt = saved.updatedAt;
         }
       }
 
@@ -1073,7 +1093,10 @@ export function readDatabase(forceReload = false): DatabaseSchema {
 
   // Create initial default DB (preserves /dev settings, no old order data)
   const initialDb: DatabaseSchema = {
-    settings: JSON.parse(JSON.stringify(defaultSettings)),
+    settings: {
+      ...JSON.parse(JSON.stringify(defaultSettings)),
+      updatedAt: Date.now()
+    },
     keys: [JSON.parse(JSON.stringify(defaultDemoKey))],
     transactions: [],
     adminTokens: ["mawwwhub-permanent-session-token", "mawwwhub_auth_permanent_key_201122"]

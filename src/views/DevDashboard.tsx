@@ -257,6 +257,12 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
     setSaveSuccessMsg('');
     setSaveErrorMsg('');
 
+    const now = Date.now();
+    const stampedPayload: FullAdminSettings = {
+      ...payload,
+      updatedAt: now
+    };
+
     try {
       const res = await fetch('/api/admin/settings', {
         method: 'POST',
@@ -264,14 +270,15 @@ export const DevDashboard: React.FC<DevDashboardProps> = ({ onBackToHome }) => {
           'Content-Type': 'application/json',
           'x-admin-token': token
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(stampedPayload)
       });
       const data = await res.json();
       if (data.success && data.data) {
         setSettings(data.data);
         try {
           localStorage.setItem('mawwwhub_saved_admin_settings', JSON.stringify(data.data));
-          localStorage.setItem('mawwwhub_settings_ts', Date.now().toString());
+          localStorage.setItem('mawwwhub_saved_public_settings', JSON.stringify(data.data));
+          localStorage.setItem('mawwwhub_settings_ts', now.toString());
         } catch (e) {}
 
         setSaveSuccessMsg('Pengaturan MawwwHub berhasil disimpan secara permanen!');
@@ -1175,23 +1182,44 @@ print("[MawwwHub] Violence District VIP script loaded successfully.")`;
 
       if (dataSettings && dataSettings.success && dataSettings.data) {
         const s = dataSettings.data;
-        const resolved: FullAdminSettings = {
-          ...DEFAULT_ADMIN_SETTINGS,
-          ...s,
-          packages: Array.isArray(s.packages) ? s.packages : DEFAULT_ADMIN_SETTINGS.packages,
-          paymentMethods: Array.isArray(s.paymentMethods) ? s.paymentMethods : DEFAULT_ADMIN_SETTINGS.paymentMethods,
-          scriptFeatures: Array.isArray(s.scriptFeatures) ? s.scriptFeatures : DEFAULT_ADMIN_SETTINGS.scriptFeatures,
-          heroPills: Array.isArray(s.heroPills) ? s.heroPills : DEFAULT_ADMIN_SETTINGS.heroPills,
-          adBanner: s.adBanner !== undefined ? s.adBanner : DEFAULT_ADMIN_SETTINGS.adBanner,
-          arexanspay: {
-            ...DEFAULT_ADMIN_SETTINGS.arexanspay,
-            ...(s.arexanspay || {})
-          }
-        };
-        setSettings(resolved);
+        const incomingTime = Number(s.updatedAt) || 0;
+
+        let localCached: FullAdminSettings | null = null;
         try {
-          localStorage.setItem('mawwwhub_saved_admin_settings', JSON.stringify(resolved));
+          const raw = localStorage.getItem('mawwwhub_saved_admin_settings');
+          if (raw) localCached = JSON.parse(raw);
         } catch (e) {}
+
+        const localTime = Number(localCached?.updatedAt) || 0;
+
+        if (localCached && localTime > incomingTime) {
+          // Local cached settings are strictly newer than the server (e.g. server was reset or restarted)
+          // NEVER revert to the server's older/default data!
+          setSettings(localCached);
+          // Restore local cached settings to the server immediately
+          saveSettingsToServer(localCached);
+        } else {
+          // Server data is newer or matching, apply it safely
+          const resolved: FullAdminSettings = {
+            ...DEFAULT_ADMIN_SETTINGS,
+            ...s,
+            packages: Array.isArray(s.packages) ? s.packages : DEFAULT_ADMIN_SETTINGS.packages,
+            paymentMethods: Array.isArray(s.paymentMethods) ? s.paymentMethods : DEFAULT_ADMIN_SETTINGS.paymentMethods,
+            scriptFeatures: Array.isArray(s.scriptFeatures) ? s.scriptFeatures : DEFAULT_ADMIN_SETTINGS.scriptFeatures,
+            heroPills: Array.isArray(s.heroPills) ? s.heroPills : DEFAULT_ADMIN_SETTINGS.heroPills,
+            adBanner: s.adBanner !== undefined ? s.adBanner : DEFAULT_ADMIN_SETTINGS.adBanner,
+            arexanspay: {
+              ...DEFAULT_ADMIN_SETTINGS.arexanspay,
+              ...(s.arexanspay || {})
+            },
+            updatedAt: incomingTime || Date.now()
+          };
+          setSettings(resolved);
+          try {
+            localStorage.setItem('mawwwhub_saved_admin_settings', JSON.stringify(resolved));
+            localStorage.setItem('mawwwhub_saved_public_settings', JSON.stringify(resolved));
+          } catch (e) {}
+        }
       }
       if (dataKeys && dataKeys.success && Array.isArray(dataKeys.data)) {
         setKeys(dataKeys.data);

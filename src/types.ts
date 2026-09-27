@@ -112,6 +112,7 @@ export interface AppPublicSettings {
   simulationEnabled: boolean;
   gatewayConfigured?: boolean;
   apiBase: string;
+  updatedAt?: number;
 }
 
 export interface FullAdminSettings {
@@ -156,6 +157,7 @@ export interface FullAdminSettings {
     defaultChannel: string;
   };
   packages: ScriptPackage[];
+  updatedAt?: number;
 }
 
 export interface AdminStats {

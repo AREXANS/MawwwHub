@@ -56,7 +56,8 @@ export function getPublicSettingsPayload(s: AppSettings, baseUrl: string) {
     defaultChannel: s.arexanspay?.defaultChannel || 'qris',
     simulationEnabled: s.arexanspay?.enableSimulation ?? false,
     gatewayConfigured: isArexansPayConfigured(s.arexanspay),
-    apiBase: baseUrl
+    apiBase: baseUrl,
+    updatedAt: s.updatedAt || Date.now()
   };
 }
 
@@ -282,6 +283,8 @@ export function createExpressApp() {
       db.settings.scriptFeatures = updated.scriptFeatures;
     }
 
+    db.settings.updatedAt = Date.now();
+
     writeDatabase(db);
     const baseUrl = getAppBaseUrl(req);
     broadcastSettingsUpdate(db.settings, baseUrl);
@@ -289,6 +292,66 @@ export function createExpressApp() {
     return res.json({
       success: true,
       message: "Pengaturan MawwwHub berhasil disimpan secara permanen & realtime!",
+      data: db.settings
+    });
+  });
+
+  // 5a-2. Public/Client Sync: Restore latest settings if client has newer version than server template
+  api.post('/settings/sync', (req: Request, res: Response) => {
+    const clientSettings = req.body as Partial<AppSettings>;
+    if (!clientSettings || !clientSettings.brandName) {
+      return res.status(400).json({ success: false, message: "Invalid settings payload" });
+    }
+
+    const clientTimestamp = Number(clientSettings.updatedAt) || 0;
+    const db = readDatabase(false);
+    const serverTimestamp = Number(db.settings?.updatedAt) || 0;
+
+    // Only restore if client's saved version is strictly newer than current server version
+    if (clientTimestamp > serverTimestamp) {
+      db.settings = {
+        ...db.settings,
+        ...clientSettings,
+        arexanspay: {
+          ...db.settings.arexanspay,
+          ...(clientSettings.arexanspay || {})
+        },
+        adBanner: clientSettings.adBanner !== undefined ? {
+          ...(db.settings.adBanner || {}),
+          ...clientSettings.adBanner
+        } : db.settings.adBanner,
+        updatedAt: clientTimestamp
+      };
+
+      if (Array.isArray(clientSettings.packages)) {
+        db.settings.packages = clientSettings.packages;
+      }
+      if (Array.isArray(clientSettings.paymentMethods)) {
+        db.settings.paymentMethods = clientSettings.paymentMethods;
+      }
+      if (Array.isArray(clientSettings.heroPills)) {
+        db.settings.heroPills = clientSettings.heroPills;
+      }
+      if (Array.isArray(clientSettings.scriptFeatures)) {
+        db.settings.scriptFeatures = clientSettings.scriptFeatures;
+      }
+
+      writeDatabase(db);
+      const baseUrl = getAppBaseUrl(req);
+      broadcastSettingsUpdate(db.settings, baseUrl);
+
+      return res.json({
+        success: true,
+        restored: true,
+        message: "Server settings successfully restored from latest client version!",
+        data: db.settings
+      });
+    }
+
+    return res.json({
+      success: true,
+      restored: false,
+      message: "Server settings already up to date.",
       data: db.settings
     });
   });

@@ -14,12 +14,12 @@ export const Hero: React.FC<HeroProps> = ({
   onOpenKeyChecker
 }) => {
   const brandName = settings?.brandName || "MawwwHub";
-  const headline = settings?.heroHeadline || "MawwwHub Script Executor & VIP Hub";
-  const subheadline = settings?.heroSubheadline || "Script Roblox terbaik, undetected, auto update & aktivasi key instan otomatis 24/7.";
+  const headline = settings?.heroHeadline || "MawwwHub VIP - Violence District Script";
+  const subheadline = settings?.heroSubheadline || "Script resmi Roblox Violence District terlengkap: Auto Scavenge Scrap, ESP Monster & Loot, Combat Silent Aim, Infinite Stamina, dan 100% Undetected.";
   const announcement = settings?.announcementText;
-  const statusBadgeText = settings?.statusBadgeText || "MawwwHub Status: Undetected & Online";
+  const statusBadgeText = settings?.statusBadgeText || "Violence District Hub: Undetected & Online";
   const statusBadgeType = settings?.statusBadgeType || "online";
-  const statusSubtext = settings?.statusSubtext || "ArexansPay Multi-Payment Aktif";
+  const statusSubtext = settings?.statusSubtext || "VIP Script Undetected";
 
   const defaultPills = [
     {

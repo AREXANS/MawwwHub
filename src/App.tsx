@@ -10,12 +10,100 @@ import { DevDashboard } from './views/DevDashboard';
 import { AppPublicSettings, ScriptPackage } from './types';
 import { Terminal, Shield, Lock, ExternalLink, Heart, Sparkles } from 'lucide-react';
 
+const DEFAULT_PUBLIC_SETTINGS: AppPublicSettings = {
+  brandName: "MawwwHub",
+  logoUrl: "",
+  tagline: "The #1 Roblox Violence District Script Hub & Auto Delivery Store",
+  heroHeadline: "MawwwHub VIP - Violence District Script",
+  heroSubheadline: "Script resmi Roblox Violence District terlengkap: Auto Scavenge Scrap, ESP Monster & Loot, Combat Silent Aim, Infinite Stamina, dan 100% Undetected.",
+  statusBadgeText: "Violence District Hub: Undetected & Online",
+  statusBadgeType: "online",
+  statusSubtext: "VIP Script Undetected",
+  heroPills: [
+    { id: 'pill-1', icon: 'zap', title: 'Instan Delivery', description: 'Key & loadstring langsung terbit hitungan detik setelah bayar.' },
+    { id: 'pill-2', icon: 'shield', title: 'Bypass Anti-Cheat', description: 'Perlindungan keamanan tinggi aman dari ban Roblox.' },
+    { id: 'pill-3', icon: 'check', title: 'Multi-Payment Otomatis', description: 'Mendukung QRIS, DANA, GoPay, OVO, BCA, BRI, Mandiri, SeaBank.' },
+    { id: 'pill-4', icon: 'sparkles', title: 'Violence District VIP', description: 'Eksklusif untuk Roblox Violence District, support PC & Mobile.' }
+  ],
+  adBanner: {
+    enabled: false,
+    type: 'image',
+    mediaUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80',
+    title: '🔥 Promo Spesial MawwwHub VIP Script',
+    badge: 'OFFICIAL UPDATE',
+    description: 'Dapatkan akses eksklusif auto-farm dan fitur premium dengan diskon terbatas!',
+    targetUrl: '#packages-section',
+    buttonText: 'Beli Key Sekarang',
+    position: 'middle'
+  },
+  quickToolsTitle: "Sudah Punya Key MawwwHub?",
+  quickToolsDesc: "Cek sisa masa aktif key Anda atau pelajari cara eksekusi script Violence District di HP Android dan PC.",
+  quickToolsBtn1Text: "Cek Validasi Key",
+  quickToolsBtn2Text: "Tutorial Executor",
+  footerText: "MawwwHub Violence District Edition • Powered by ArexansPay Multi-Bank & QRIS Automation",
+  gameName: "Violence District",
+  scriptDescription: "MawwwHub Violence District Edition dikembangkan khusus dan eksklusif untuk game Roblox Violence District. Dilengkapi fitur Auto Scavenge Scrap & Crates, ESP Lengkap (Entity, Enemies, Players, Items), Combat Hitbox Expander, Fullbright tanpa kegelapan, Infinite Stamina, serta GUI in-game responsif untuk Mobile (Delta/Codex) & PC (Solara/Wave).",
+  scriptFeatures: [
+    "⚡ Auto Scavenge Scrap & Crate Opener Instan",
+    "👁️ ESP Lengkap (Monsters, Killers, Survivors, Scraps & Items)",
+    "🎯 Combat Mods: Silent Aim, Hitbox Expander & Fast Attack",
+    "🛡️ 100% Undetected & Anti-Ban Violence District Bypass",
+    "🔦 Fullbright & Anti-Fog (Tembus Gelap Total & Malam Hari)",
+    "⚡ Infinite Stamina & Speed Multiplier (Lari Tanpa Batas)",
+    "🚀 Instant Safehouse / Extraction Safezone Teleport",
+    "📱 Support Mobile (Delta, Codex, Arceus X) & PC (Solara, Wave)"
+  ],
+  discordUrl: "https://discord.gg/mawwwhub",
+  telegramUrl: "https://t.me/mawwwhub",
+  whatsappContact: "https://wa.me/6281234567890",
+  announcementText: "🔥 VIOLENCE DISTRICT VIP: Auto farm scrap, ESP monster & fullbright aktif! Diskon 30% hari ini!",
+  enableOrderUsername: false,
+  enableOrderWhatsapp: false,
+  enableCustomKeyOrder: true,
+  packages: [
+    { id: "pkg-1d", name: "Paket 1 Hari (Trial)", durationDays: 1, durationLabel: "1 Hari (24 Jam)", price: 5000, isPopular: false, description: "Coba langsung fitur Violence District VIP", isActive: true },
+    { id: "pkg-3d", name: "Paket 3 Hari", durationDays: 3, durationLabel: "3 Hari", price: 10000, isPopular: false, description: "Cocok untuk grinding weekend dan event game", isActive: true },
+    { id: "pkg-7d", name: "Paket 7 Hari (1 Minggu)", durationDays: 7, durationLabel: "7 Hari (1 Minggu)", price: 18000, isPopular: true, description: "Paket paling diminati! Akses penuh 1 minggu", isActive: true },
+    { id: "pkg-30d", name: "Paket 30 Hari (1 Bulan)", durationDays: 30, durationLabel: "30 Hari (1 Bulan)", price: 35000, isPopular: false, description: "Hemat untuk grinding rutin harian", isActive: true },
+    { id: "pkg-perm", name: "Paket Lifetime (Permanen)", durationDays: -1, durationLabel: "Lifetime / Permanen", price: 75000, isPopular: false, description: "Akses selamanya termasuk semua update patch masa depan", isActive: true }
+  ],
+  paymentMethods: [
+    { id: 'qris', name: 'QRIS All Payment (GPN)', code: 'qris', category: 'qris', instructions: 'Scan QRIS dengan GoPay, OVO, DANA, ShopeePay, LinkAja, BCA, Mandiri, BRI, BNI atau aplikasi m-Banking manapun.', isActive: true, isDefault: true },
+    { id: 'dana', name: 'DANA Instant', code: 'dana', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', instructions: 'Transfer ke nomor akun DANA di atas. Masukkan nominal tepat beserta kode unik agar otomatis terkonfirmasi.', isActive: true },
+    { id: 'gopay', name: 'GoPay / Gojek', code: 'gopay', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', instructions: 'Transfer saldo GoPay ke nomor di atas. Pembayaran terverifikasi otomatis.', isActive: true },
+    { id: 'ovo', name: 'OVO Cash', code: 'ovo', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', instructions: 'Buka aplikasi OVO dan transfer ke nomor di atas sesuai total pembayaran.', isActive: true },
+    { id: 'shopeepay', name: 'ShopeePay', code: 'shopeepay', category: 'ewallet', accountNumber: '081234567890', accountHolder: 'MawwwHub Store', instructions: 'Transfer ShopeePay ke nomor di atas dengan nominal yang tepat.', isActive: true },
+    { id: 'bank_bca', name: 'Bank Central Asia (BCA)', code: 'bca', category: 'bank', accountNumber: '8735091823', accountHolder: 'MawwwHub Store', instructions: 'Transfer via m-BCA atau KlikBCA. Wajib transfer sesuai nominal hingga 3 digit kode unik.', isActive: true },
+    { id: 'bank_bri', name: 'Bank Rakyat Indonesia (BRI)', code: 'bri', category: 'bank', accountNumber: '012901092839501', accountHolder: 'MawwwHub Store', instructions: 'Transfer via BRImo atau ATM BRI dengan nominal pas termasuk kode unik.', isActive: true },
+    { id: 'bank_mandiri', name: 'Bank Mandiri (Livin)', code: 'mandiri', category: 'bank', accountNumber: '1370019284950', accountHolder: 'MawwwHub Store', instructions: 'Transfer via Livin by Mandiri. Transfer tepat sesuai kode unik.', isActive: true },
+    { id: 'bank_seabank', name: 'SeaBank (Transfer Gratis)', code: 'seabank', category: 'bank', accountNumber: '901928475829', accountHolder: 'MawwwHub Store', instructions: 'Bebas biaya admin transfer dari e-wallet/bank lain ke rekening SeaBank ini.', isActive: true }
+  ],
+  defaultChannel: 'qris',
+  simulationEnabled: false,
+  apiBase: ''
+};
+
 export default function App() {
   const [currentPath, setCurrentPath] = useState<string>(() => {
     return window.location.pathname.toLowerCase();
   });
-  const [settings, setSettings] = useState<AppPublicSettings | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+
+  // Zero-flicker immediate state initialization:
+  // Reads saved data from localStorage immediately so there is never a blank flash or default flicker!
+  const [settings, setSettings] = useState<AppPublicSettings>(() => {
+    try {
+      const cached = localStorage.getItem('mawwwhub_saved_public_settings');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && (parsed.brandName || parsed.heroHeadline)) {
+          return { ...DEFAULT_PUBLIC_SETTINGS, ...parsed };
+        }
+      }
+    } catch (e) {}
+    return DEFAULT_PUBLIC_SETTINGS;
+  });
+
+  const [isLoading, setIsLoading] = useState(false);
 
   // Modals
   const [selectedPackage, setSelectedPackage] = useState<ScriptPackage | null>(null);
@@ -31,13 +119,39 @@ export default function App() {
     return () => window.removeEventListener('popstate', handleLocationChange);
   }, []);
 
-  // Fetch Public Settings
+  // Fetch Public Settings with anti-reversion and zero-flicker validation
   const fetchSettings = async () => {
     try {
       const res = await fetch(`/api/settings?_t=${Date.now()}`);
       const data = await res.json();
       if (data.success && data.data) {
-        setSettings(data.data);
+        const incoming = data.data as AppPublicSettings;
+        const incomingTime = Number(incoming.updatedAt) || 0;
+
+        // Check if our local cache is strictly newer than the server (e.g. server restarted or cold started)
+        let localCached: AppPublicSettings | null = null;
+        try {
+          const raw = localStorage.getItem('mawwwhub_saved_public_settings');
+          if (raw) localCached = JSON.parse(raw);
+        } catch (e) {}
+
+        const localTime = Number(localCached?.updatedAt) || 0;
+
+        if (localCached && localTime > incomingTime) {
+          // Client has newer saved data! Keep local settings and restore to server immediately
+          setSettings(localCached);
+          fetch('/api/settings/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(localCached)
+          }).catch(() => {});
+        } else {
+          // Server data is newer or equal, apply and cache it
+          setSettings(incoming);
+          try {
+            localStorage.setItem('mawwwhub_saved_public_settings', JSON.stringify(incoming));
+          } catch (e) {}
+        }
       }
     } catch (err) {
       console.error('Error fetching settings:', err);
@@ -57,7 +171,19 @@ export default function App() {
         try {
           const payload = JSON.parse(event.data);
           if (payload && payload.brandName) {
-            setSettings(payload);
+            let localTime = 0;
+            try {
+              const raw = localStorage.getItem('mawwwhub_saved_public_settings');
+              if (raw) localTime = Number(JSON.parse(raw)?.updatedAt) || 0;
+            } catch (e) {}
+
+            const incomingTime = Number(payload.updatedAt) || 0;
+            if (incomingTime >= localTime) {
+              setSettings(payload);
+              try {
+                localStorage.setItem('mawwwhub_saved_public_settings', JSON.stringify(payload));
+              } catch (e) {}
+            }
             setIsLoading(false);
           }
         } catch (e) {}
@@ -67,17 +193,20 @@ export default function App() {
       };
     } catch (e) {}
 
-    // 2. Realtime polling fallback every 2 seconds
+    // 2. Realtime polling fallback every 3 seconds
     const interval = setInterval(() => {
       if (document.visibilityState === 'visible') {
         fetchSettings();
       }
-    }, 2000);
+    }, 3000);
 
     // 3. Listen to local update events (e.g. from /dev in same window)
     const handleLocalUpdate = (e: any) => {
       if (e?.detail) {
         setSettings(e.detail);
+        try {
+          localStorage.setItem('mawwwhub_saved_public_settings', JSON.stringify(e.detail));
+        } catch (err) {}
       } else {
         fetchSettings();
       }
@@ -86,7 +215,13 @@ export default function App() {
 
     // 4. Listen to cross-tab storage sync
     const handleStorage = (e: StorageEvent) => {
-      if (e.key === 'mawwwhub_settings_ts') {
+      if (e.key === 'mawwwhub_settings_ts' || e.key === 'mawwwhub_saved_public_settings') {
+        try {
+          const raw = localStorage.getItem('mawwwhub_saved_public_settings');
+          if (raw) {
+            setSettings(JSON.parse(raw));
+          }
+        } catch (err) {}
         fetchSettings();
       }
     };
@@ -100,6 +235,9 @@ export default function App() {
         if (event.data?.type === 'SETTINGS_UPDATED') {
           if (event.data.data) {
             setSettings(event.data.data);
+            try {
+              localStorage.setItem('mawwwhub_saved_public_settings', JSON.stringify(event.data.data));
+            } catch (err) {}
           } else {
             fetchSettings();
           }

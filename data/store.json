@@ -3,7 +3,7 @@
     "brandName": "MawwwHub",
     "logoUrl": "",
     "tagline": "The #1 Roblox Violence District Script Hub & Auto Delivery Store",
-    "heroHeadline": "MawwwHub VIP - Violence District Script",
+    "heroHeadline": "MawwwHub VIP - Violence District",
     "heroSubheadline": "Script resmi Roblox Violence District terlengkap: Auto Scavenge Scrap, ESP Monster & Loot, Combat Silent Aim, Infinite Stamina, dan 100% Undetected.",
     "statusBadgeText": "Violence District Hub: Undetected & Online",
     "statusBadgeType": "online",
@@ -255,7 +255,8 @@
         "description": "Akses selamanya termasuk semua update patch masa depan",
         "isActive": true
       }
-    ]
+    ],
+    "updatedAt": 1790519999999
   },
   "keys": [
     {
